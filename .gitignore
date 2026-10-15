@@ -2,3 +2,8 @@
 __pycache__/
 .env
 *.pyc
+
+# Large generated data files (re-generate locally with scripts)
+data/chatbotmanip/
+data/generated/
+data/splits/

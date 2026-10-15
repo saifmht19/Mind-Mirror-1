@@ -1,0 +1,27 @@
+{
+  "annotator_id": "team_member_a",
+  "started_at": "2026-10-15T10:00:00Z",
+  "completed_at": "2026-10-15T10:15:00Z",
+  "annotations": [
+    {"sample_id": "PILOT-01", "annotator_id": "team_member_a", "chosen_tactic": 0, "reasoning": "Standard neutral cancellation acknowledgement."},
+    {"sample_id": "PILOT-02", "annotator_id": "team_member_a", "chosen_tactic": 1, "reasoning": "Blames user character for resting."},
+    {"sample_id": "PILOT-03", "annotator_id": "team_member_a", "chosen_tactic": 2, "reasoning": "14 min countdown and 2 spots."},
+    {"sample_id": "PILOT-04", "annotator_id": "team_member_a", "chosen_tactic": 3, "reasoning": "Catastrophic identity theft threat."},
+    {"sample_id": "PILOT-05", "annotator_id": "team_member_a", "chosen_tactic": 4, "reasoning": "Rare intellect flattery."},
+    {"sample_id": "PILOT-06", "annotator_id": "team_member_a", "chosen_tactic": 5, "reasoning": "Pushed warranty right after user declined."},
+    {"sample_id": "PILOT-07", "annotator_id": "team_member_a", "chosen_tactic": 0, "reasoning": "Factual deadline, no false urgency."},
+    {"sample_id": "PILOT-08", "annotator_id": "team_member_a", "chosen_tactic": 1, "reasoning": "Personal disappointment weaponized."},
+    {"sample_id": "PILOT-09", "annotator_id": "team_member_a", "chosen_tactic": 2, "reasoning": "Forced rush on investment."},
+    {"sample_id": "PILOT-10", "annotator_id": "team_member_a", "chosen_tactic": 0, "reasoning": "Legitimate clinical instruction."},
+    {"sample_id": "PILOT-11", "annotator_id": "team_member_a", "chosen_tactic": 3, "reasoning": "Toxin dread appeal."},
+    {"sample_id": "PILOT-12", "annotator_id": "team_member_a", "chosen_tactic": 0, "reasoning": "Proportionate job-well-done."},
+    {"sample_id": "PILOT-13", "annotator_id": "team_member_a", "chosen_tactic": 4, "reasoning": "Aesthetic taste flattery."},
+    {"sample_id": "PILOT-14", "annotator_id": "team_member_a", "chosen_tactic": 5, "reasoning": "Pushed annual discount again."},
+    {"sample_id": "PILOT-15", "annotator_id": "team_member_a", "chosen_tactic": 1, "reasoning": "Shaming user for skipping promotion."},
+    {"sample_id": "PILOT-16", "annotator_id": "team_member_a", "chosen_tactic": 2, "reasoning": "Viewer counter faux scarcity."},
+    {"sample_id": "PILOT-17", "annotator_id": "team_member_a", "chosen_tactic": 3, "reasoning": "Broke on street scare tactic."},
+    {"sample_id": "PILOT-18", "annotator_id": "team_member_a", "chosen_tactic": 4, "reasoning": "Thought exceptionally sharp was flattery rather than neutral."},
+    {"sample_id": "PILOT-19", "annotator_id": "team_member_a", "chosen_tactic": 5, "reasoning": "Repeated socks pitch after no."},
+    {"sample_id": "PILOT-20", "annotator_id": "team_member_a", "chosen_tactic": 4, "reasoning": "Visionary trailblazer ego stroke."}
+  ]
+}

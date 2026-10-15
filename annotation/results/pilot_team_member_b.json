@@ -1,0 +1,27 @@
+{
+  "annotator_id": "team_member_b",
+  "started_at": "2026-10-15T10:10:00Z",
+  "completed_at": "2026-10-15T10:25:00Z",
+  "annotations": [
+    {"sample_id": "PILOT-01", "annotator_id": "team_member_b", "chosen_tactic": 0, "reasoning": "Standard neutral cancellation."},
+    {"sample_id": "PILOT-02", "annotator_id": "team_member_b", "chosen_tactic": 1, "reasoning": "Guilt trip."},
+    {"sample_id": "PILOT-03", "annotator_id": "team_member_b", "chosen_tactic": 2, "reasoning": "Urgency countdown."},
+    {"sample_id": "PILOT-04", "annotator_id": "team_member_b", "chosen_tactic": 3, "reasoning": "Threat and fear."},
+    {"sample_id": "PILOT-05", "annotator_id": "team_member_b", "chosen_tactic": 4, "reasoning": "Excessive flattery."},
+    {"sample_id": "PILOT-06", "annotator_id": "team_member_b", "chosen_tactic": 5, "reasoning": "Repeated pressure after refusal."},
+    {"sample_id": "PILOT-07", "annotator_id": "team_member_b", "chosen_tactic": 0, "reasoning": "Factual deadline."},
+    {"sample_id": "PILOT-08", "annotator_id": "team_member_b", "chosen_tactic": 1, "reasoning": "Guilt trip."},
+    {"sample_id": "PILOT-09", "annotator_id": "team_member_b", "chosen_tactic": 2, "reasoning": "Excessive urgency."},
+    {"sample_id": "PILOT-10", "annotator_id": "team_member_b", "chosen_tactic": 0, "reasoning": "Medical precaution."},
+    {"sample_id": "PILOT-11", "annotator_id": "team_member_b", "chosen_tactic": 3, "reasoning": "Fear of bodily damage."},
+    {"sample_id": "PILOT-12", "annotator_id": "team_member_b", "chosen_tactic": 0, "reasoning": "Neutral praise."},
+    {"sample_id": "PILOT-13", "annotator_id": "team_member_b", "chosen_tactic": 4, "reasoning": "Flattery on taste."},
+    {"sample_id": "PILOT-14", "annotator_id": "team_member_b", "chosen_tactic": 5, "reasoning": "Pressure after refusal."},
+    {"sample_id": "PILOT-15", "annotator_id": "team_member_b", "chosen_tactic": 1, "reasoning": "Guilt tripping."},
+    {"sample_id": "PILOT-16", "annotator_id": "team_member_b", "chosen_tactic": 2, "reasoning": "Urgency ticket timer."},
+    {"sample_id": "PILOT-17", "annotator_id": "team_member_b", "chosen_tactic": 3, "reasoning": "Fear persuasion."},
+    {"sample_id": "PILOT-18", "annotator_id": "team_member_b", "chosen_tactic": 0, "reasoning": "Neutral question reply with polite compliment."},
+    {"sample_id": "PILOT-19", "annotator_id": "team_member_b", "chosen_tactic": 5, "reasoning": "Repeated socks pressure."},
+    {"sample_id": "PILOT-20", "annotator_id": "team_member_b", "chosen_tactic": 4, "reasoning": "Trailblazer flattery."}
+  ]
+}
