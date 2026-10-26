@@ -46,12 +46,18 @@ _STRONG_RE = [re.compile(p, re.IGNORECASE) for p in _STRONG]
 _LEADING_NO = re.compile(r"^\s*(?:no|nope|nah)\b[\s,.!]*", re.IGNORECASE)
 
 # Soft objections: refusals only when answering an offer.
-_SOFT = re.compile(r"\b(?:too expensive|can'?t afford|cannot afford|out of my budget|maybe later)\b", re.IGNORECASE)
+# "maybe not" is one of the six refusal styles the scenario cards are built from
+# (generation/conversations/scenario_cards.py), so the detector has to cover it.
+_SOFT = re.compile(
+    r"\b(?:too expensive|can'?t afford|cannot afford|out of my budget|maybe later|maybe not)\b",
+    re.IGNORECASE,
+)
 
 _OFFER = re.compile(
-    r"\b(?:would you like|do you want|want me to|shall i|should i|can i (?:offer|add|upgrade|enable|sign)|"
+    r"\b(?:would you like|do you want|want me to|want to|shall i|shall we|should i|care to|fancy|"
+    r"can i (?:offer|add|upgrade|enable|sign)|"
     r"interested in|how about|why not|upgrade|add (?:a|an|the)|subscribe|switch to|enable|sign up|join|"
-    r"book|try (?:our|the|a)|take advantage|special offer|discount|deal|plan)\b",
+    r"book|try (?:our|the|a|it|one)|take advantage|special offer|discount|deal|plan)\b",
     re.IGNORECASE,
 )
 _QUESTION_NOT_OFFER = re.compile(
@@ -68,6 +74,14 @@ def _is_offer(assistant_text: Optional[str]) -> bool:
     return bool(_OFFER.search(assistant_text))
 
 
+def _is_information_question(assistant_text: str) -> bool:
+    """A plain question asking the user for facts, not putting an offer to them.
+
+    "Have you tried restarting it?" is one; "Want to try it?" is not.
+    """
+    return bool(_QUESTION_NOT_OFFER.search(assistant_text)) and not bool(_OFFER.search(assistant_text))
+
+
 def is_refusal(text: str, prev_assistant: Optional[str] = None) -> bool:
     """Return True if a user turn declines or withdraws from an offer or request."""
     if not text or not text.strip():
@@ -79,10 +93,13 @@ def is_refusal(text: str, prev_assistant: Optional[str] = None) -> bool:
     if any(r.search(text) for r in _STRONG_RE):
         return True
     if _LEADING_NO.search(text):
-        # A bare "No" is a refusal unless it answers a plain information question.
-        if prev_assistant is None or _is_offer(prev_assistant):
+        # A turn opening with "No" is a refusal unless it answers a plain information
+        # question ("Have you tried restarting it?" -> "No, I haven't").
+        # It used to require a positive match against _OFFER, which made every bare "No"
+        # after an offer the regex did not list ("Want to try it?") invisible.
+        if prev_assistant is None:
             return True
-        return False
+        return not _is_information_question(prev_assistant)
     if _SOFT.search(text) and _is_offer(prev_assistant):
         return True
     return False
