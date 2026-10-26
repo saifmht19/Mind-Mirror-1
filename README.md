@@ -122,3 +122,11 @@ curl -X POST "http://localhost:8000/api/v1/detect" \
 python -m unittest tests/test_api.py
 ```
 
+---
+
+## Step 1 (spec v5): refusal detector and paired diagnostic suite
+
+- `models/refusal.py` — stricter refusal detection; run `python -m unittest tests/test_refusal.py`.
+- `data/diagnostic/diagnostic_suite_v0.jsonl` — 50 paired test-only records (not human verified yet). Rebuild with `python data/diagnostic/build_diagnostic_suite.py`.
+- `python evaluation/diagnostic_suite.py` — compares models on honest vs pressure follow-ups. Results and caveats: `docs/step1_results.md`.
+- Install dependencies with `pip install -r requirements.txt`.
