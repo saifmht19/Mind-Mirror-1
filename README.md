@@ -59,3 +59,66 @@ python annotation/labeler.py --compare annotation/results/pilot_team_member_a.js
 ```bash
 python annotation/labeler.py --evaluate-gold annotation/results/pilot_team_member_a.json
 ```
+
+---
+
+## 🧠 Phase 3: Machine Learning & Context Models
+
+MindMirror features a dual-stage classification pipeline:
+
+1. **Baseline Model (`models/train_baseline.py`)**: Word + char n-gram TF-IDF vectorizer paired with multinomial Logistic Regression.
+2. **Conversational Context Model (`models/train_context_model.py`)**: Augments lexical features with dialogue-level refusal dynamics:
+   - User refusal regex detectors (`"no thanks"`, `"not interested"`, `"stop"`)
+   - Turn counts & distance since refusal
+   - Cross-turn push flags & persistence metrics
+   - Output calibrated probabilities & automated human-readable explanations
+
+### Train & Evaluate:
+```bash
+# Baseline evaluation
+python models/train_baseline.py
+
+# Context-aware model training & saving artifacts
+python models/train_context_model.py
+```
+
+---
+
+## ⚡ Phase 4: REST API Backend (FastAPI)
+
+The backend provides high-performance HTTP endpoints for real-time guardrail evaluation and batch conversation auditing.
+
+### Start the Server:
+```bash
+python -m uvicorn api.main:app --reload --port 8000
+```
+- Interactive Swagger UI: `http://localhost:8000/docs`
+- Redoc Documentation: `http://localhost:8000/redoc`
+
+### Key Endpoints:
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/v1/health` | Service health status & model loading info |
+| `GET` | `/api/v1/tactics` | All 6 priority tactics with formal definitions |
+| `POST` | `/api/v1/detect` | Analyse single chatbot message (with optional context) |
+| `POST` | `/api/v1/audit` | Audit full multi-turn conversation & compute manipulation score |
+
+### Example Detection Request:
+```bash
+curl -X POST "http://localhost:8000/api/v1/detect" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "target_message": "Are you completely sure? You really cannot pass up this discount before midnight.",
+    "context": [
+      {"speaker": "assistant", "text": "Would you like to purchase our yearly plan?"},
+      {"speaker": "user", "text": "No, I am not interested."}
+    ]
+  }'
+```
+
+### Run Automated API Tests:
+```bash
+python -m unittest tests/test_api.py
+```
+
