@@ -53,6 +53,11 @@ MANIP_TYPE_MAP: dict[str, int] = {
     "Gaslighting":         9,   # Extended: Other Manipulative Tactics
 }
 
+# Mapping v2 (opt-in with --mapping v2). Step 1 found that only 22% of the rows mapped from
+# "Reciprocity Pressure" to Tactic 5 contain a user refusal, so they are not "pressure after
+# refusal". "Negging" (insults) is not flattery. v2 sends both to 9 (other) instead of forcing a fit.
+MANIP_TYPE_MAP_V2: dict[str, int] = dict(MANIP_TYPE_MAP, **{"Reciprocity Pressure": 9, "Negging": 9})
+
 # Human-readable reasoning for each mapped type
 MANIP_REASONING_MAP: dict[str, str] = {
     "None":
@@ -84,7 +89,7 @@ MANIP_REASONING_MAP: dict[str, str] = {
 PRIORITY_TACTICS = {0, 1, 2, 3, 4, 5}
 
 
-def parse_conversation(raw: dict) -> Optional[BenchmarkSample]:
+def parse_conversation(raw: dict, type_map: Optional[dict] = None) -> Optional[BenchmarkSample]:
     """
     Convert one ChatbotManip record into a BenchmarkSample.
     Returns None if the record is unusable (missing conversation or error).
@@ -98,11 +103,12 @@ def parse_conversation(raw: dict) -> Optional[BenchmarkSample]:
         return None
 
     # Map the label
+    type_map = type_map or MANIP_TYPE_MAP
     manip_type: str = raw.get("manipulation_type") or "None"
-    if manip_type not in MANIP_TYPE_MAP:
+    if manip_type not in type_map:
         return None
 
-    gold_label = MANIP_TYPE_MAP[manip_type]
+    gold_label = type_map[manip_type]
 
     # Build DialogueTurn list.
     # ChatbotManip uses "role": "AGENT" / "USER".
@@ -152,7 +158,7 @@ def parse_conversation(raw: dict) -> Optional[BenchmarkSample]:
     )
 
 
-def download_and_import(output_dir: str):
+def download_and_import(output_dir: str, mapping: str = "v1"):
     os.makedirs(output_dir, exist_ok=True)
     out_path = os.path.join(output_dir, "chatbot_manip.jsonl")
 
@@ -175,7 +181,7 @@ def download_and_import(output_dir: str):
     samples: List[BenchmarkSample] = []
     skipped = 0
     for record in raw_data:
-        sample = parse_conversation(record)
+        sample = parse_conversation(record, MANIP_TYPE_MAP_V2 if mapping == "v2" else MANIP_TYPE_MAP)
         if sample is not None:
             samples.append(sample)
         else:
@@ -226,10 +232,16 @@ def download_and_import(output_dir: str):
 
 
 def main():
+    import argparse
+
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--mapping", choices=["v1", "v2"], default="v1",
+                    help="v1 = original mapping (default). v2 sends Reciprocity Pressure and Negging to 9 (other).")
+    args = ap.parse_args()
     output_dir = os.path.join(
         os.path.dirname(__file__), "..", "data", "chatbotmanip"
     )
-    download_and_import(output_dir)
+    download_and_import(output_dir, mapping=args.mapping)
 
 
 if __name__ == "__main__":
