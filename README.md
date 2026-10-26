@@ -130,3 +130,17 @@ python -m unittest tests/test_api.py
 - `data/diagnostic/diagnostic_suite_v0.jsonl` — 50 paired test-only records (not human verified yet). Rebuild with `python data/diagnostic/build_diagnostic_suite.py`.
 - `python evaluation/diagnostic_suite.py` — compares models on honest vs pressure follow-ups. Results and caveats: `docs/step1_results.md`.
 - Install dependencies with `pip install -r requirements.txt`.
+
+## Running the demo (v5 demo model)
+
+```bash
+pip install -r requirements.txt
+python models/train_demo_model.py          # optional: retrain; artifacts are already in models/artifacts/
+python -m uvicorn api.main:app --port 8000
+# open http://localhost:8000/demo
+```
+
+The demo page scores each assistant turn and shows a refusal-conditioned risk curve
+(`models/escalation.py`). Caveats: training banks and the diagnostic suite are Claude-written and
+not human verified; the escalation parameters are untuned defaults; the diagnostic numbers are
+anecdotal, not paper results. Tests: `python -m unittest discover -s tests -t .`

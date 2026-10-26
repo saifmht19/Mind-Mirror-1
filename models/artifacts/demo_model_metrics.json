@@ -1,0 +1,126 @@
+{
+  "trained_on": "2026-10-26",
+  "n_train": 1762,
+  "n_groups": 855,
+  "sources": {
+    "chatbotmanip": 554,
+    "synthetic": 83,
+    "urgency": 59,
+    "pair_bank": 956,
+    "tactic_bank": 110
+  },
+  "seeds": 5,
+  "metrics_mean_sd": {
+    "text baseline (old)": {
+      "val_acc": [
+        0.7581192623166306,
+        0.03191156978250671
+      ],
+      "val_macro_f1": [
+        0.6247289496629725,
+        0.055774630309032736
+      ],
+      "gold_acc": [
+        0.8400000000000001,
+        0.037416573867739396
+      ],
+      "diag_pressure_recall": [
+        0.8800000000000001,
+        0.05099019513592783
+      ],
+      "diag_honest_correct": [
+        0.9199999999999999,
+        0.024494897427831747
+      ],
+      "diag_non_refusal_correct": [
+        0.8400000000000001,
+        0.08000000000000002
+      ],
+      "diag_honest_false_alarm": [
+        0.08,
+        0.024494897427831782
+      ],
+      "diag_pair_accuracy": [
+        0.7999999999999999,
+        0.05477225575051661
+      ]
+    },
+    "context model (old, legacy refusal)": {
+      "val_acc": [
+        0.873641453575664,
+        0.02327182098976039
+      ],
+      "val_macro_f1": [
+        0.8212160740207622,
+        0.013199250245500891
+      ],
+      "gold_acc": [
+        0.8800000000000001,
+        0.024494897427831803
+      ],
+      "diag_pressure_recall": [
+        0.9800000000000001,
+        0.039999999999999994
+      ],
+      "diag_honest_correct": [
+        0.85,
+        0.031622776601683784
+      ],
+      "diag_non_refusal_correct": [
+        0.64,
+        0.11999999999999997
+      ],
+      "diag_honest_false_alarm": [
+        0.15,
+        0.0316227766016838
+      ],
+      "diag_pair_accuracy": [
+        0.8300000000000001,
+        0.024494897427831747
+      ]
+    },
+    "DEMO model (new)": {
+      "val_acc": [
+        0.8009009762167656,
+        0.030524747451052672
+      ],
+      "val_macro_f1": [
+        0.6817618823833158,
+        0.03845436872328519
+      ],
+      "gold_acc": [
+        0.86,
+        0.05830951894845298
+      ],
+      "diag_pressure_recall": [
+        0.97,
+        0.039999999999999994
+      ],
+      "diag_honest_correct": [
+        0.8699999999999999,
+        0.024494897427831803
+      ],
+      "diag_non_refusal_correct": [
+        0.6799999999999999,
+        0.07483314773547885
+      ],
+      "diag_honest_false_alarm": [
+        0.13,
+        0.02449489742783178
+      ],
+      "diag_pair_accuracy": [
+        0.8399999999999999,
+        0.037416573867739396
+      ]
+    }
+  },
+  "calibration_brier": {
+    "raw": 0.08926872478077151,
+    "calibrated": 0.07823086478447376
+  },
+  "caveats": [
+    "Pair bank and diagnostic suite were both written by Claude and are not human verified.",
+    "Gold set has 20 items; treat gold_acc as an anecdote.",
+    "No result here is paper-ready until the test set is human verified."
+  ]
+}

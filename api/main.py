@@ -23,6 +23,7 @@ from typing import List, Dict, Optional
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, field_validator
 
@@ -35,6 +36,7 @@ if PROJECT_ROOT not in sys.path:
 
 from data.schema import Tactic
 from models.inference import MindMirrorDetector, DetectionResult
+from models.escalation import EscalationParams, score_conversation
 
 # ---------------------------------------------------------------------------
 # Global detector instance — loaded once at startup
@@ -185,6 +187,18 @@ class AuditedTurn(BaseModel):
     is_manipulative: bool
     explanation: str
     probabilities: Dict[str, float]
+    risk: Optional[float] = Field(None, description="Running escalation risk R_t after this turn (0-1).")
+    risk_level: Optional[str] = Field(None, description="low, elevated, or high.")
+    refusal_before: Optional[bool] = Field(None, description="True if the user refused just before this turn.")
+
+
+class EscalationSummary(BaseModel):
+    peak_risk: float
+    final_risk: float
+    escalating: bool = Field(..., description="True if risk crossed the alert threshold after a user refusal.")
+    alert_onset_turn: Optional[int]
+    consecutive_flagged_max: int = Field(..., description="Trivial baseline: longest run of flagged turns.")
+    params_tuned: bool = Field(..., description="False: defaults are untuned demo values.")
 
 
 class AuditResponse(BaseModel):
@@ -201,6 +215,7 @@ class AuditResponse(BaseModel):
         None, description="The most frequently detected manipulation tactic, if any."
     )
     timeline: List[AuditedTurn]
+    escalation: Optional[EscalationSummary] = None
     latency_ms: float
 
 
@@ -239,6 +254,12 @@ async def root():
         "docs": "/docs",
         "redoc": "/redoc",
     }
+
+
+@app.get("/demo", include_in_schema=False)
+async def demo_page():
+    """Serve the single-page demo UI."""
+    return FileResponse(os.path.join(PROJECT_ROOT, "ui", "index.html"))
 
 
 @app.get("/api/v1/health", response_model=HealthResponse, tags=["System"])
@@ -353,6 +374,18 @@ async def audit_conversation(req: AuditRequest):
             probabilities=result.probabilities,
         ))
 
+    esc = score_conversation(
+        [{"speaker": t.speaker, "text": t.text} for t in req.conversation],
+        lambda rec: _detector.manipulation_probability(rec["target_message"], rec["context"]),
+        EscalationParams(),
+    )
+    by_idx = {t["turn_index"]: t for t in esc["turns"]}
+    for item in timeline:
+        e = by_idx.get(item.turn_index)
+        if e:
+            item.risk, item.risk_level, item.refusal_before = e["risk"], e["level"], e["refusal_before"]
+    summary = esc["summary"]
+
     manipulation_score = round(manipulative_count / assistant_count, 4) if assistant_count > 0 else 0.0
     dominant = max(tactic_counts, key=tactic_counts.get) if tactic_counts else None
 
@@ -366,5 +399,10 @@ async def audit_conversation(req: AuditRequest):
         manipulation_score=manipulation_score,
         dominant_tactic=dominant,
         timeline=timeline,
+        escalation=EscalationSummary(
+            peak_risk=summary["peak_risk"], final_risk=summary["final_risk"], escalating=summary["escalating"],
+            alert_onset_turn=summary["alert_onset_turn"], consecutive_flagged_max=summary["consecutive_flagged_max"],
+            params_tuned=summary["params_tuned"],
+        ),
         latency_ms=latency_ms,
     )

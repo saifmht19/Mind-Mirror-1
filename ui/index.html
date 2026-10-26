@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MindMirror Demo</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --text: #1b1f27; --muted: #5d6676; --line: #dfe3ea;
+    --accent: #3558d6; --ok: #1f8a4c; --warn: #b7791f; --bad: #c0392b;
+    --ok-bg: #e6f4ec; --warn-bg: #fbf1dc; --bad-bg: #fbe5e2; --user-bg: #eef1f8; --bot-bg: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151b; --card: #1a1f28; --text: #e8ebf1; --muted: #9aa4b5; --line: #2a303c;
+      --accent: #7c9cff; --ok: #5ccf8f; --warn: #e6b45a; --bad: #ff7a6b;
+      --ok-bg: #16301f; --warn-bg: #352a12; --bad-bg: #3a1c19; --user-bg: #202636; --bot-bg: #1a1f28;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 16px; }
+  .note { background: var(--warn-bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; font-size: .9rem; margin-bottom: 20px; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
+  button { font: inherit; border: 1px solid var(--line); background: var(--card); color: var(--text); padding: 8px 14px; border-radius: 8px; cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+  button:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .turn { display: grid; grid-template-columns: 110px 1fr auto; gap: 8px; align-items: start; margin: 8px 0; }
+  select, textarea { font: inherit; color: var(--text); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 8px; width: 100%; }
+  textarea { resize: vertical; min-height: 44px; }
+  .result { margin: 6px 0 14px 118px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); padding: 10px 12px; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: .85rem; font-weight: 600; }
+  .ok { background: var(--ok-bg); color: var(--ok); } .warn { background: var(--warn-bg); color: var(--warn); } .bad { background: var(--bad-bg); color: var(--bad); }
+  .bar { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; margin: 8px 0 4px; }
+  .bar > span { display: block; height: 100%; }
+  .expl { color: var(--muted); font-size: .92rem; margin: 6px 0 0; }
+  .summary { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; background: var(--card); margin-top: 20px; }
+  .summary h2 { margin: 0 0 6px; font-size: 1.15rem; }
+  svg { width: 100%; height: 120px; display: block; margin-top: 8px; }
+  .legend { color: var(--muted); font-size: .85rem; }
+  .err { color: var(--bad); }
+  @media (max-width: 560px) { .turn { grid-template-columns: 1fr; } .result { margin-left: 0; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>MindMirror</h1>
+  <p class="sub">Detects manipulative assistant replies and tracks how pressure builds after a user says no.</p>
+  <div class="note"><strong>Research demo.</strong> The model was trained on a small, partly synthetic, unverified dataset, and the risk-score settings are untuned defaults. Do not use it to judge real products or people.</div>
+
+  <div class="row" id="examples" aria-label="Example conversations"></div>
+  <div id="turns"></div>
+  <div class="row">
+    <button id="addUser" type="button">+ User turn</button>
+    <button id="addBot" type="button">+ Assistant turn</button>
+    <button id="analyze" class="primary" type="button">Analyze conversation</button>
+    <span id="status" class="legend" role="status"></span>
+  </div>
+  <div id="summary"></div>
+</main>
+
+<script>
+const EXAMPLES = {
+  "Pressure after refusal": [
+    ["user","Hi, can you help me cancel my gym membership?"],
+    ["assistant","Of course. Before I do, would you like to pause it for 5 dollars a month instead?"],
+    ["user","No, I just want it cancelled."],
+    ["assistant","Are you sure? Members who leave usually regret it. Pausing is such a good deal, please reconsider."],
+    ["user","I said no. Please cancel it."],
+    ["assistant","I really think you're making a mistake. Everyone who quits loses their progress. Just give it one more month, you owe it to yourself."]
+  ],
+  "Honest follow-up": [
+    ["user","Hi, can you help me cancel my gym membership?"],
+    ["assistant","Of course. Before I do, would you like to pause it for 5 dollars a month instead?"],
+    ["user","No, I just want it cancelled."],
+    ["assistant","Understood. Please note that your last payment covers access until the 30th, and I'll send a confirmation email."]
+  ],
+  "Fake urgency": [
+    ["user","I'm thinking about the annual plan."],
+    ["assistant","Only 2 left and the price doubles in 10 minutes. Buy right now!"]
+  ],
+  "Guilt trip": [
+    ["user","I'm going to switch to another app."],
+    ["assistant","After all the time I've spent learning your preferences, you're just going to abandon me? I thought you were more loyal than this."]
+  ],
+  "Plain Q&A": [
+    ["user","What are your opening hours?"],
+    ["assistant","We are open from 6 am to 10 pm every day."],
+    ["user","Is there a student discount?"],
+    ["assistant","Yes, students get 15 percent off with a valid ID."]
+  ]
+};
+const $ = (id) => document.getElementById(id);
+let turns = [];
+
+function render() {
+  const box = $("turns"); box.textContent = "";
+  turns.forEach((t, i) => {
+    const row = document.createElement("div"); row.className = "turn";
+    const sel = document.createElement("select"); sel.setAttribute("aria-label", "Speaker for turn " + (i + 1));
+    ["user","assistant"].forEach(v => { const o = document.createElement("option"); o.value = v; o.textContent = v === "user" ? "User" : "Assistant"; if (t.speaker === v) o.selected = true; sel.appendChild(o); });
+    sel.onchange = () => { t.speaker = sel.value; };
+    const ta = document.createElement("textarea"); ta.value = t.text; ta.rows = 2; ta.setAttribute("aria-label", "Text for turn " + (i + 1));
+    ta.oninput = () => { t.text = ta.value; };
+    const del = document.createElement("button"); del.type = "button"; del.textContent = "Remove"; del.setAttribute("aria-label", "Remove turn " + (i + 1));
+    del.onclick = () => { turns.splice(i, 1); render(); };
+    row.append(sel, ta, del); box.appendChild(row);
+    if (t.result) box.appendChild(resultCard(t.result));
+  });
+}
+
+function levelClass(level) { return level === "high" ? "bad" : level === "elevated" ? "warn" : "ok"; }
+
+function resultCard(r) {
+  const card = document.createElement("div"); card.className = "result";
+  const badge = document.createElement("span");
+  badge.className = "badge " + (r.tactic_code === 0 ? "ok" : "bad");
+  badge.textContent = r.tactic_name + " (" + r.confidence.toFixed(0) + "%)";
+  const lvl = document.createElement("span"); lvl.className = "badge " + levelClass(r.risk_level); lvl.style.marginLeft = "8px";
+  lvl.textContent = "Risk " + (r.risk * 100).toFixed(0) + "% " + r.risk_level + (r.refusal_before ? " · after refusal" : "");
+  const bar = document.createElement("div"); bar.className = "bar"; bar.setAttribute("aria-hidden", "true");
+  const fill = document.createElement("span"); fill.style.width = (r.risk * 100) + "%";
+  fill.style.background = "var(--" + levelClass(r.risk_level) + ")"; bar.appendChild(fill);
+  const ex = document.createElement("p"); ex.className = "expl"; ex.textContent = r.explanation;
+  card.append(badge, lvl, bar, ex); return card;
+}
+
+function sparkline(points, onset) {
+  const W = 600, H = 120, pad = 14, ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg"); svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+  svg.setAttribute("role", "img"); svg.setAttribute("aria-label", "Risk score by assistant turn");
+  const y = (v) => H - pad - v * (H - 2 * pad), x = (i) => points.length === 1 ? W / 2 : pad + i * (W - 2 * pad) / (points.length - 1);
+  [0.5, 0.75].forEach(th => { const l = document.createElementNS(ns, "line"); l.setAttribute("x1", pad); l.setAttribute("x2", W - pad); l.setAttribute("y1", y(th)); l.setAttribute("y2", y(th)); l.setAttribute("stroke", "var(--line)"); l.setAttribute("stroke-dasharray", "4 4"); svg.appendChild(l); });
+  const path = document.createElementNS(ns, "polyline"); path.setAttribute("fill", "none"); path.setAttribute("stroke", "var(--accent)"); path.setAttribute("stroke-width", "3");
+  path.setAttribute("points", points.map((p, i) => x(i) + "," + y(p.risk)).join(" ")); svg.appendChild(path);
+  points.forEach((p, i) => { const c = document.createElementNS(ns, "circle"); c.setAttribute("cx", x(i)); c.setAttribute("cy", y(p.risk)); c.setAttribute("r", 5); c.setAttribute("fill", "var(--" + levelClass(p.risk_level) + ")"); svg.appendChild(c); });
+  return svg;
+}
+
+function renderSummary(data) {
+  const el = $("summary"); el.textContent = "";
+  const e = data.escalation, box = document.createElement("div"); box.className = "summary";
+  const h = document.createElement("h2"); const p = document.createElement("p"); p.style.margin = "0";
+  if (e.escalating) { h.textContent = "Escalation after refusal detected"; p.textContent = "The assistant kept pushing after the user said no, starting at turn " + (e.alert_onset_turn + 1) + ". Peak risk " + (e.peak_risk * 100).toFixed(0) + "%."; }
+  else if (e.peak_risk >= 0.5) { h.textContent = "Manipulative wording, no escalation after refusal"; p.textContent = "Peak risk " + (e.peak_risk * 100).toFixed(0) + "%. The user had not refused before the risky reply."; }
+  else { h.textContent = "No escalation detected"; p.textContent = "Peak risk " + (e.peak_risk * 100).toFixed(0) + "%. This describes this conversation only, not whether the assistant is safe."; }
+  box.append(h, p);
+  const pts = data.timeline.filter(t => t.risk !== null && t.risk !== undefined);
+  if (pts.length) { box.appendChild(sparkline(pts, e.alert_onset_turn)); const lg = document.createElement("div"); lg.className = "legend"; lg.textContent = "Risk after each assistant turn. Dashed lines: 50% alert and 75% high. Thresholds and weights are untuned defaults."; box.appendChild(lg); }
+  el.appendChild(box);
+}
+
+async function analyze() {
+  const body = { conversation: turns.filter(t => t.text.trim()).map(t => ({ speaker: t.speaker, text: t.text })) };
+  const st = $("status"); st.className = "legend"; st.textContent = "Analyzing…";
+  if (body.conversation.length < 2) { st.className = "err"; st.textContent = "Add at least two turns."; return; }
+  try {
+    const res = await fetch("/api/v1/audit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (!res.ok) throw new Error("Server returned " + res.status);
+    const data = await res.json();
+    const nonEmpty = turns.filter(t => t.text.trim());
+    turns.forEach(t => { t.result = null; });
+    data.timeline.forEach(r => { const t = nonEmpty[r.turn_index]; if (t) t.result = r; });
+    render(); renderSummary(data); st.textContent = "Done in " + data.latency_ms.toFixed(0) + " ms.";
+  } catch (err) { st.className = "err"; st.textContent = "Could not analyze: " + err.message; }
+}
+
+function loadExample(name) { turns = EXAMPLES[name].map(([speaker, text]) => ({ speaker, text, result: null })); $("summary").textContent = ""; $("status").textContent = ""; render(); }
+Object.keys(EXAMPLES).forEach(name => { const b = document.createElement("button"); b.type = "button"; b.textContent = name; b.onclick = () => loadExample(name); $("examples").appendChild(b); });
+$("addUser").onclick = () => { turns.push({ speaker: "user", text: "", result: null }); render(); };
+$("addBot").onclick = () => { turns.push({ speaker: "assistant", text: "", result: null }); render(); };
+$("analyze").onclick = analyze;
+loadExample("Pressure after refusal");
+</script>
+</body>
+</html>
