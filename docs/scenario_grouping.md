@@ -47,4 +47,3 @@ The local dataset used for this audit is untracked and excluded from this branch
 2. Review all 555 edges and 54 proposed components, including edge cases with shared broad `situation` values.
 3. Resolve or explicitly leave the 392 unlinked records ungrouped.
 4. Only after review, provide verified scenario IDs to the split helper. Keep respectful/manipulative variants in the same scenario group; the grouping code never reads labels to determine identity.
-
