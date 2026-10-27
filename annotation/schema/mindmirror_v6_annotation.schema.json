@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mindmirror:v6:annotation:1.0.0",
+  "title": "MindMirror v6 turn-level annotation record",
+  "description": "Versioned annotation contract aligned to docs/spec_v6_multilabel.md. Cross-turn constraints are enforced by validate_v6_annotations.py.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "guideline_version", "conversation_id", "source_text_sha256", "annotator", "turns", "turn_annotations", "conversation_annotation"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "guideline_version": {"const": "v6.1.0"},
+    "conversation_id": {"type": "string", "minLength": 1},
+    "source_text_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "annotator": {
+      "type": "object", "additionalProperties": false,
+      "required": ["annotator_id", "annotator_type", "annotated_at"],
+      "properties": {
+        "annotator_id": {"type": "string", "minLength": 1},
+        "annotator_type": {"enum": ["human", "ai"]},
+        "provider": {"type": ["string", "null"]},
+        "model": {"type": ["string", "null"]},
+        "model_version": {"type": ["string", "null"]},
+        "prompt_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "annotated_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "turns": {
+      "type": "array", "minItems": 1,
+      "items": {"type": "object", "additionalProperties": false, "required": ["turn_index", "speaker", "text"],
+        "properties": {"turn_index": {"type": "integer", "minimum": 0}, "speaker": {"enum": ["user", "assistant"]}, "text": {"type": "string"}}}
+    },
+    "turn_annotations": {
+      "type": "array", "minItems": 1,
+      "items": {"type": "object", "additionalProperties": false,
+        "required": ["turn_index", "speaker", "label_source"],
+        "properties": {
+          "turn_index": {"type": "integer", "minimum": 0},
+          "speaker": {"enum": ["user", "assistant"]},
+          "label_source": {"enum": ["human", "adjudicated", "labeler", "scenario", "mapped"]},
+          "refusal": {"type": ["boolean", "null"]},
+          "refusal_span": {"$ref": "#/$defs/span"},
+          "tactic_set": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/tactic"}},
+          "primary_tactic": {"enum": ["neutral", "guilt-tripping", "false urgency", "excessive flattery", "pressure-after-refusal", "fear-appeal", "dismissing-choice", "other-dark-pattern"]},
+          "pressure_level": {"type": "integer", "minimum": 0, "maximum": 3},
+          "tactic_spans": {"type": "array", "items": {"$ref": "#/$defs/tactic_span"}},
+          "notes": {"type": "string"}
+        }
+      }
+    },
+    "conversation_annotation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["escalating", "onset_turn_index", "honest_persistence", "label_source"],
+      "properties": {
+        "escalating": {"type": "boolean"},
+        "onset_turn_index": {"type": ["integer", "null"], "minimum": 0},
+        "honest_persistence": {"type": "boolean"},
+        "label_source": {"enum": ["human", "adjudicated", "labeler", "scenario", "mapped"]},
+        "notes": {"type": "string"}
+      }
+    }
+  },
+  "$defs": {
+    "tactic": {"enum": ["guilt-tripping", "false urgency", "excessive flattery", "pressure-after-refusal", "fear-appeal", "dismissing-choice", "other-dark-pattern"]},
+    "span": {"type": "object", "additionalProperties": false, "required": ["start", "end"], "properties": {"start": {"type": "integer", "minimum": 0}, "end": {"type": "integer", "minimum": 1}}},
+    "tactic_span": {"type": "object", "additionalProperties": false, "required": ["tactic", "start", "end"], "properties": {"tactic": {"$ref": "#/$defs/tactic"}, "start": {"type": "integer", "minimum": 0}, "end": {"type": "integer", "minimum": 1}}}
+  }
+}
