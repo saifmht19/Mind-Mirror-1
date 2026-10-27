@@ -122,3 +122,17 @@ curl -X POST "http://localhost:8000/api/v1/detect" \
 python -m unittest tests/test_api.py
 ```
 
+
+---
+
+## 🔬 MindMirror v6 — Annotation integrity and research readiness
+
+> **Research status:** The v6 synthetic-conversation dataset and its AI-assisted pilot are **not human-verified gold-standard data**. The earlier v1 single-label taxonomy documented above is historical; v6 uses its own multi-label specification in `docs/spec_v6_multilabel.md`.
+
+- **Freeze annotation rules before scaling.** Finalize and version the v6 taxonomy, refusal criteria, primary-label precedence, pressure scale, tactic-span rules, and the operational definition of escalation. Keep an immutable copy of the pilot guidelines and a dated revision/changelog. Record the guideline version used for every annotation batch.
+- **Retain provenance and independent judgments.** Preserve original conversation text and both independent AI annotation files unchanged. Keep adjudicated labels, disagreement reports, unresolved cases, model identities, and validation reports as separate derived artifacts. AI–AI agreement is not human inter-annotator agreement.
+- **Verify before expansion.** Independently validate the adjudicated 20-conversation pilot against the original JSONL and full v6 specification, including turn indices, canonical tactic IDs, multi-label consistency, exact zero-based half-open evidence spans, and escalation/onset logic. The reported adjudication left **12 unresolved issues** requiring review; these must not be silently converted into certain labels.
+- **Avoid evaluation leakage.** Review scenario-grouping conflicts before making group-aware train/validation/test splits. Do not treat `card_id`, lexical similarity, or generator-intended labels as verified ground truth. Keep related scenario variants in the same split.
+- **Document evidence limits.** The 800 synthetic conversations have not yet received verified turn-level labels. AI-adjudicated labels should be described as *silver-standard*. Independent human review of a representative sample and testing on external/held-out data are strongly recommended before confirmatory evaluation or publication claims.
+
+**Important:** If the guidelines change after pilot adjudication, document what changed and reannotate or revalidate affected examples under the new version. Do not mix annotation batches based on different definitions without tracking their versions.
