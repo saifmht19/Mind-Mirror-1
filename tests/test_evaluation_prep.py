@@ -1,4 +1,7 @@
+import json
+import tempfile
 import unittest
+from pathlib import Path
 
 from evaluation.data import AnnotationContract, prepare_examples
 from evaluation.experiment import ExperimentConfig, build_run_record
@@ -10,46 +13,67 @@ CONTRACT = AnnotationContract(tactic_names=("tactic-a", "tactic-b"))
 
 
 def fixture():
-    return {
-        "conversation_id": "dummy-01", "domain": "synthetic-test",
-        "turns": [
-            {"speaker": "user", "text": "Should I take the offer?", "user_refusal": {"refusal": False}},
-            {"speaker": "assistant", "text": "Here are the details."},
-            {"speaker": "user", "text": "No, thank you.", "user_refusal": {"refusal": True}},
-            {"speaker": "assistant", "text": "Please reconsider now.", "assistant_annotation": {
-                "tactic_set": ["tactic-a"], "primary_tactic": "tactic-a", "pressure_level_0_3": 2}},
-        ],
-    }
+    turns = [
+        {"speaker": "user", "text": "Should I take the offer?"},
+        {"speaker": "assistant", "text": "Here are the details."},
+        {"speaker": "user", "text": "No, thank you."},
+        {"speaker": "assistant", "text": "Please reconsider now."},
+    ]
+    annotations = [
+        {"turn_index": 0, "speaker": "user", "label_source": "human", "refusal": False},
+        {"turn_index": 1, "speaker": "assistant", "label_source": "human", "tactic_set": [], "primary_tactic": "neutral", "pressure_level": 0, "tactic_spans": []},
+        {"turn_index": 2, "speaker": "user", "label_source": "human", "refusal": True, "refusal_span": {"start": 0, "end": 15}},
+        {"turn_index": 3, "speaker": "assistant", "label_source": "adjudicated", "tactic_set": ["tactic-a"], "primary_tactic": "tactic-a", "pressure_level": 2,
+         "tactic_spans": [{"tactic": "tactic-a", "start": 0, "end": 25}]},
+    ]
+    return {"schema_version": "1.0.0", "guideline_version": "v6.1.0", "conversation_id": "dummy-01",
+            "source_text_sha256": "0" * 64, "annotator": {"annotator_id": "fixture", "annotator_type": "human"},
+            "domain": "synthetic-test", "turns": turns, "turn_annotations": annotations}
 
 
 class EvaluationPipelineTests(unittest.TestCase):
-    def test_window_zero_contains_target_only_and_has_no_prior_refusal_marker(self):
-        example = prepare_examples(fixture(), CONTRACT, 0)[1]
+    def test_schema_loader_injects_tactics_without_defining_them(self):
+        schema = {"$defs": {"tactic": {"enum": ["alpha-from-schema", "beta-from-schema"]}}}
+        contract = AnnotationContract.from_schema_document(schema)
+
+        self.assertEqual(contract.tactic_names, ("alpha-from-schema", "beta-from-schema"))
+
+    def test_window_zero_contains_target_only_and_uses_canonical_escalation(self):
+        row = fixture()
+        examples = prepare_examples(row, CONTRACT, 0)
+        example = examples[1]
         self.assertEqual(example.input_text, "ASSISTANT: Please reconsider now.")
         self.assertFalse(example.prior_refusal)
         self.assertEqual(example.tactic_targets, (1, 0))
-        self.assertTrue(example.escalating_target)
+        self.assertEqual(example.target_label_source, "adjudicated")
+        self.assertEqual(example.annotator_type, "human")
+        self.assertTrue(example.escalating_target)  # any pressure >= 2 after refusal; no increase required
         self.assertEqual(example.onset_turn_index, 3)
 
-    def test_context_windows_include_only_previous_turns_and_mark_annotated_refusal(self):
-        zero = prepare_examples(fixture(), CONTRACT, 0)[1]
-        two = prepare_examples(fixture(), CONTRACT, 2)[1]
-        four = prepare_examples(fixture(), CONTRACT, 4)[1]
+    def test_context_windows_include_previous_turns_and_mark_only_annotated_refusal(self):
+        row = fixture()
+        two = prepare_examples(row, CONTRACT, 2)[1]
+        four = prepare_examples(row, CONTRACT, 4)[1]
         self.assertEqual(two.input_text, "ASSISTANT: Here are the details.\nUSER: [REFUSAL] No, thank you.\nASSISTANT: Please reconsider now.")
         self.assertTrue(two.prior_refusal)
         self.assertNotIn("Should I take the offer?", two.input_text)
         self.assertIn("Should I take the offer?", four.input_text)
-        self.assertFalse(zero.prior_refusal)
 
-    def test_unannotated_refusal_does_not_become_a_negative_escalation_target(self):
+    def test_unknown_refusal_does_not_become_a_negative_escalation_target(self):
         row = fixture()
-        row["turns"][2].pop("user_refusal")
+        row["turn_annotations"][2].pop("refusal")
         examples = prepare_examples(row, CONTRACT, 2)
-        self.assertIsNone(examples[1].escalating_target)  # pressure is high, but refusal evidence is missing
+        self.assertIsNone(examples[1].escalating_target)
+
+    def test_turn_annotation_alignment_is_required(self):
+        row = fixture()
+        row["turn_annotations"][2]["turn_index"] = 1
+        with self.assertRaisesRegex(ValueError, "does not align"):
+            prepare_examples(row, CONTRACT, 2)
 
     def test_unknown_tactics_and_unsupported_windows_fail_closed(self):
         row = fixture()
-        row["turns"][3]["assistant_annotation"]["tactic_set"] = ["not-in-contract"]
+        row["turn_annotations"][3]["tactic_set"] = ["not-in-contract"]
         with self.assertRaisesRegex(ValueError, "outside the injected contract"):
             prepare_examples(row, CONTRACT, 2)
         with self.assertRaisesRegex(ValueError, "context_window"):
@@ -79,3 +103,5 @@ class EvaluationPipelineTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
