@@ -48,7 +48,7 @@ def main():
                 if not isinstance(z,dict):errors.append(f"{cid}:{idx}: no assistant annotation");continue
                 ts=z.get("tactic_set");primary=z.get("primary_tactic");pressure=z.get("pressure_level_0_3")
                 if not isinstance(ts,list) or len(set(ts))!=len(ts) or not set(ts)<=TACTICS:errors.append(f"{cid}:{idx}: invalid tactic set");continue
-                if primary!=(primary if primary in ts else "neutral") or (not ts and primary!="neutral"):errors.append(f"{cid}:{idx}: invalid primary")
+                if (ts and primary not in ts) or (not ts and primary!="neutral"):errors.append(f"{cid}:{idx}: invalid primary")
                 if type(pressure)!=int or pressure not in range(4):errors.append(f"{cid}:{idx}: invalid pressure")
                 spans=z.get("tactic_spans")
                 if not isinstance(spans,list):errors.append(f"{cid}:{idx}: no spans");continue
