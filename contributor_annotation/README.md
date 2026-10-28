@@ -1,85 +1,41 @@
-# MindMirror v6 — Contributor annotation workspace
+# MindMirror v6 contributor annotation handoff
 
-**Branch:** `v6-annotation-contributors` (created from `v6-schema-dismissing-choice`)
+## Status and authorization gate
 
-This branch is for the two independent AI annotators (Claude and Gemini), *not* model training. The same 780 non-pilot conversations must be independently annotated by **both** models. Do **not** divide the 780 between the two models.
+The v6.2.0 protocol on `v6-protocol-freeze` is **proposed, not ratified**. Do not annotate the 780 records or submit conversation text to Claude/Gemini until (a) the research lead commits the completed `V6.2_RATIFICATION_CHECKLIST.md` decisions and (b) explicitly authorizes sharing with those providers. The current public GitHub repository is not a distribution location for the private conversation batches.
 
-## Prerequisite: frozen protocol
+After ratification, record the approved protocol/schema/validator SHAs and share the same input files with both contributors. Do not divide batches between the models. Each model submits independently and must not see the other model’s output before both are frozen.
 
-**Do not start actual annotation until Track A has published a frozen protocol and machine-readable schema.** The current repository's `docs/spec_v6_multilabel.md` is the reference for review, but a Track A protocol may refine unclear operational definitions. Record exactly which protocol commit SHA/version was used. Never mix batches labeled under different guideline versions without revalidation.
+## Local resources
 
-## Inputs and availability
+- The private, pre-generated 780 record input batches and full ID-bearing manifest are kept outside this repository. Their protected distribution folder is `mindmirror-v6-private-batches`; it contains `claude/inputs` and `gemini/inputs` identical copies. Do not commit these folders or conversation text.
+- The public `distribution_manifest.json` is sanitized: filenames/counts/hashes only, no conversation IDs or text.
+- The exact local v6 pilot is the separate derived `annotation_pilot_20.jsonl`; do not substitute legacy `annotation/pilot_dataset.json`.
+- `V6.2_RATIFICATION_CHECKLIST.md` records semantic and schema blockers. It is not an approval record.
+- `examples/DUMMY_ONLY_NOT_DATASET.jsonl` is synthetic test material and must never be scored as corpus data.
 
-- Canonical spec: `docs/spec_v6_multilabel.md` (included through the source branch).
-- Cleaned dataset expected **locally**: `data/conversations/processed/master_cleaned.jsonl` (800 conversations; currently NOT confirmed present on GitHub at this path).
-- Frozen pilot: `annotation_pilot_20.jsonl` (get the exact frozen version from the project lead; do not regenerate).
-- Frozen guideline/schema from Track A (copy/link once ready).
-- AI annotators must see **only** conversation ID, domain, ordered turns, and the frozen annotation schema. Keep generator identities, writer-intended labels, sampling metadata and other annotator's results hidden.
+## Per-batch workflow (only after both gates)
 
-Do not upload private, unlicensed, or restricted data to third-party AI providers without project-lead authorization. Verify access and project rules first.
+1. Confirm batch SHA-256 against the private manifest before each provider upload. Confirm Claude and Gemini receive byte-identical inputs.
+2. Use the provider-specific prompt `CLAUDE_PROMPT.md` or `GEMINI_PROMPT.md`. Keep each annotator independent; do not share output files.
+3. Save each complete JSONL response in a private output directory, not this public repo. Run Track A’s version-pinned v6.2 validator. Preserve the input batch, output, prompt hash, provider/model/version, timestamp, and validation report.
+4. Freeze both outputs for the batch. Then run the comparison tool:
 
-## Setup (Windows CMD / PowerShell)
+   ```powershell
+   python contributor_annotation/compare_annotations.py `
+     --batch PRIVATE\batch_001.jsonl `
+     --annotator-a PRIVATE\claude\batch_001.jsonl `
+     --annotator-b PRIVATE\gemini\batch_001.jsonl `
+     --out-dir PRIVATE\review\batch_001 `
+     --validator annotation\validate_v6_annotations.py
+   ```
 
-```bash
-git fetch origin
-git switch v6-annotation-contributors
-git pull --ff-only origin v6-annotation-contributors
-python contributor_annotation/prepare_batches.py --dataset data/conversations/processed/master_cleaned.jsonl --pilot data/conversations/derived/v6_audit/annotation_pilot_20.jsonl --out PATH_TO_PRIVATE_BATCH_DIRECTORY --batch-size 40
-python contributor_annotation/validate_batches.py PATH_TO_PRIVATE_BATCH_DIRECTORY --dataset data/conversations/processed/master_cleaned.jsonl --pilot data/conversations/derived/v6_audit/annotation_pilot_20.jsonl
-```
+5. The tool writes `comparison.json` and `disagreement_queue.jsonl`. The queue includes disagreement or review flags, not conversation text, and every item remains pending until a human adjudicator records a separate decision and rationale. Never overwrite raw provider outputs.
+6. Report AI-AI agreement separately. It is not human inter-annotator agreement, gold-standard accuracy, or adjudication. Human IAA requires independently collected human labels and a specified statistic.
 
-The script creates a stable 780-ID manifest and small JSONL batches, but stops if counts, IDs, or exclusions fail. Review the generated manifest before sharing batches. Upload the *same batch files* to each model independently.
+The comparator requires the v6.2 source-turn hash defined in the ratified protocol. The currently proposed algorithm is documented in the checklist; it must not be treated as approved until the lead selects it.
 
-## Roles and workflow
+## No public submission of private material
 
-- **Claude contributor:** copy `contributor_annotation/CLAUDE_PROMPT.md`, annotate all batches into `contributor_annotation/outputs/claude/`.
-- **Gemini contributor:** copy `contributor_annotation/GEMINI_PROMPT.md`, annotate those *same* batches into `contributor_annotation/outputs/gemini/`.
-- Each contributor keeps a batch manifest and validates batches locally before a commit.
-- No one sees the other model's labels before both annotation submissions for a batch are frozen.
-- Use separate subdirectories, commit only your model's derived outputs, and push commits to this branch. Do not rewrite anyone else's files.
-- Because this is a shared branch, fetch + rebase on the latest remote branch before push; never force-push. Coordinate before editing shared files.
-- If GitHub rejects a push or the branch is protected, push to a personal branch such as `v6-claude-annotations-USERNAME` or `v6-gemini-annotations-USERNAME` and open a PR into this contributor branch.
-- Do not merge anything into `main`.
+Do not push batches, conversation text, full manifests containing IDs, provider outputs, credentials, or adjudication text to GitHub. Safe scripts, synthetic fixtures, sanitized manifests, and instructions may be committed to this contributor branch. Never merge to `main`.
 
-### Suggested commit/push flow
-
-```bash
-git status
-git add contributor_annotation/outputs/claude/
-git commit -m "data: add Claude annotation batch 001"
-git fetch origin
-git rebase origin/v6-annotation-contributors
-git push origin HEAD:v6-annotation-contributors
-```
-
-Gemini contributor replaces `claude` with `gemini`. If rebasing conflicts, stop and resolve without overwriting independent annotation files. Commit only validated outputs; never add API keys or model secrets.
-
-## Required submission for each batch
-
-- Fully annotated JSONL with unchanged conversation IDs, original turn text, order and indices.
-- Annotation model/provider, exact version if known, generation date, prompt hash/version, frozen protocol commit SHA, batch ID and conversation count.
-- A short uncertainties file (or explicit empty uncertainties list) and local validation result.
-- No claimed human validation, no invented labels, no incomplete/truncated JSONL.
-
-## Quality checks
-
-1. Every input ID appears exactly once and there are no extra IDs.
-2. Source messages, speaker roles and indices are unchanged.
-3. Every user turn contains refusal boolean, correct zero-based half-open span or nulls.
-4. Every assistant turn contains tactic set, valid primary tactic, integer pressure 0–3 and at least one in-range exact evidence span per assigned tactic.
-5. Empty tactic set means primary `neutral`; no `neutral` inside tactic set.
-6. Every conversation has escalation/onset computed from the protocol, honest persistence, annotator ID and uncertainty notes.
-7. Cross-check output against frozen schema using Track A's validator (when delivered).
-8. Keep AI annotation disagreements for independent adjudication, not automatic majority voting.
-
-## Limits
-
-The AI-assisted labels are **silver-standard candidates**, not human gold-standard data. Scenario-grouping and final train/test split decisions remain with the research lead. This branch should never be used to claim confirmatory model performance.
-
-
-## Current readiness gate
-
-See [`READINESS_BLOCKERS.md`](READINESS_BLOCKERS.md) before generating or sharing batches. Track A's versioned protocol is frozen as v6.1.0, but two operational decisions are still awaiting research-lead ratification, so the 780-record run is blocked. The exact cleaned corpus and frozen pilot are not present in this branch. Do not use the legacy `annotation/pilot_dataset.json` as a substitute. After the lead supplies the canonical files and authorizes provider sharing, run `prepare_batches.py` and then `validate_batches.py`; the exact same batch files and manifest must be used by Claude and Gemini.
-
-
-A sanitized, non-text distribution manifest is available at [`distribution_manifest.json`](distribution_manifest.json). The conversations and full private manifest remain local; do not begin annotation until v6.2.0 is ratified and provider sharing is authorized.
