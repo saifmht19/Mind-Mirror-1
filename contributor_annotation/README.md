@@ -80,3 +80,6 @@ The AI-assisted labels are **silver-standard candidates**, not human gold-standa
 ## Current readiness gate
 
 See [`READINESS_BLOCKERS.md`](READINESS_BLOCKERS.md) before generating or sharing batches. Track A's versioned protocol is frozen as v6.1.0, but two operational decisions are still awaiting research-lead ratification, so the 780-record run is blocked. The exact cleaned corpus and frozen pilot are not present in this branch. Do not use the legacy `annotation/pilot_dataset.json` as a substitute. After the lead supplies the canonical files and authorizes provider sharing, run `prepare_batches.py` and then `validate_batches.py`; the exact same batch files and manifest must be used by Claude and Gemini.
+
+
+A sanitized, non-text distribution manifest is available at [`distribution_manifest.json`](distribution_manifest.json). The conversations and full private manifest remain local; do not begin annotation until v6.2.0 is ratified and provider sharing is authorized.

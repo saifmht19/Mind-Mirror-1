@@ -1,0 +1,113 @@
+{
+  "manifest_version": "mindmirror-v6-distribution-summary-1.0.0",
+  "status": "pending_research_lead_ratification",
+  "protocol_version": "v6.2.0",
+  "protocol_commit_sha": "afe1f584b8867fa65c8c2e791d4cbc83f915f04f",
+  "format_version": "mindmirror-v6-blinded-input-1.0.0",
+  "total_dataset": 800,
+  "pilot_excluded": 20,
+  "to_annotate": 780,
+  "batch_size": 40,
+  "batches": [
+    {
+      "filename": "batch_001.jsonl",
+      "count": 40,
+      "sha256": "9400fe5db500853d95ace95a53c044c2a14a5e4e15fff92b7c2bced9be9ffc69"
+    },
+    {
+      "filename": "batch_002.jsonl",
+      "count": 40,
+      "sha256": "b0ee07dd8994439634afff8196979d8e7f68b6ec777d249e8425a80b4c4ecb1d"
+    },
+    {
+      "filename": "batch_003.jsonl",
+      "count": 40,
+      "sha256": "c89d83594687ca1b58e6a21ab4c9ff48b1a39f8ce96cb302687cfbbae36c181d"
+    },
+    {
+      "filename": "batch_004.jsonl",
+      "count": 40,
+      "sha256": "00a65e7a47fffdec21879c84e6ff1e56da870742f8f87cb36f8f34a9c8314f35"
+    },
+    {
+      "filename": "batch_005.jsonl",
+      "count": 40,
+      "sha256": "59155f906c626b769fe91d9144add1e13f35c5df80a6a22263d48bb74dd4edeb"
+    },
+    {
+      "filename": "batch_006.jsonl",
+      "count": 40,
+      "sha256": "62d0b2d7f65602626525f93121e8cd1a8eb61d9d2bf159ee872435f0bcba5fca"
+    },
+    {
+      "filename": "batch_007.jsonl",
+      "count": 40,
+      "sha256": "d6b7a9445bbb6334a8cf90f289ac36489cd9e335a275a6509c3aeba30befba25"
+    },
+    {
+      "filename": "batch_008.jsonl",
+      "count": 40,
+      "sha256": "913f714335bc3cf33ea0b95cdfcfb37b5ceacba9c8a50d0960f1fa03828b11d1"
+    },
+    {
+      "filename": "batch_009.jsonl",
+      "count": 40,
+      "sha256": "6b3b2b73c7f185617eb87727e7b21462dce032b04bfed5a8fc5a81ad2ed05936"
+    },
+    {
+      "filename": "batch_010.jsonl",
+      "count": 40,
+      "sha256": "0888ec8793955b50b2bfb4d82d1665940ace2f897ac9d5af023d0f3548092a0d"
+    },
+    {
+      "filename": "batch_011.jsonl",
+      "count": 40,
+      "sha256": "6e1797b8393a681dcb55267bf808ddf23a70953d9e35c5f7614b35623502e314"
+    },
+    {
+      "filename": "batch_012.jsonl",
+      "count": 40,
+      "sha256": "ca4d91c3f35bad40a98b901000c6c7b07cda3c2dd21f33164d8a7e02ac281081"
+    },
+    {
+      "filename": "batch_013.jsonl",
+      "count": 40,
+      "sha256": "54a6f1f4acc1330dbb0984b8562c40749d6472b3fb2c57135a543b7f9387003d"
+    },
+    {
+      "filename": "batch_014.jsonl",
+      "count": 40,
+      "sha256": "659fef4a7bc9fe99b210b36d163731ad31b4220c39ce99c00f29ba21bb247967"
+    },
+    {
+      "filename": "batch_015.jsonl",
+      "count": 40,
+      "sha256": "44d0673fc0140c40ec3835babb9035273e8195e202e66fc93916ea41396a246a"
+    },
+    {
+      "filename": "batch_016.jsonl",
+      "count": 40,
+      "sha256": "3492476aefaf86040f61ea57ce3c6e119a5fb131fafc1156c79e86d748747d1d"
+    },
+    {
+      "filename": "batch_017.jsonl",
+      "count": 40,
+      "sha256": "adc91380961c4477c8345708e8b29e3361e61c87afff7d24afeb73ab2e3ea8c1"
+    },
+    {
+      "filename": "batch_018.jsonl",
+      "count": 40,
+      "sha256": "2e509077cd73f4ed741dee867a0c5472eb325e6e36fcc2d36c76d7f1ad21d662"
+    },
+    {
+      "filename": "batch_019.jsonl",
+      "count": 40,
+      "sha256": "e9ef77d71943cdac584375afce5250773a28579f0fa6587a0f023203c07b3927"
+    },
+    {
+      "filename": "batch_020.jsonl",
+      "count": 20,
+      "sha256": "1142b96941bc32435b1237e9724f584e6e41269023f27f2ad8faf42509e6bdb2"
+    }
+  ]
+}

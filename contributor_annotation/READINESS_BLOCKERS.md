@@ -15,3 +15,7 @@ Track A v6.1.0 at commit 4e8d652e0692e183ba6946fea966f4bdafd5afb4 is frozen, but
 The contributor scripts now target proposed v6.2.0 and its Track A commit. The builder whitelists only conversation ID, domain, and ordered turn index/speaker/text. The validator checks source and pilot file hashes, 800/20/780 counts, exact pilot exclusion, unique IDs, text preservation against source, turn structure, and batch hashes. Claude and Gemini receive the same batch files byte-for-byte.
 
 Real batches are generated only in the private local distribution directory. Annotation remains paused until v6.2.0 is ratified. After ratification, verify the manifest still references the approved protocol SHA before distributing.
+
+## Local batch run
+
+On 2026-10-28 the contributor pipeline generated 780 non-pilot records in 20 deterministic batches (19 batches of 40 and a final batch of 20) in a private local directory. The source-aware validator passed all 20 batches, confirming source/pilot hashes, exact pilot exclusion, unique IDs, source-order IDs, exact text preservation, turn structure, and per-batch SHA-256. Conversation text and the full ID-bearing manifest were kept local. `distribution_manifest.json` is a sanitized summary containing only protocol/version status, counts, filenames, and batch hashes; it contains no conversations or conversation IDs. Annotation is still paused pending v6.2.0 ratification and provider-sharing authorization.
