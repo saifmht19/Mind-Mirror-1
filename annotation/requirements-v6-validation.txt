@@ -1,0 +1,2 @@
+# Needed to run Draft 2020-12 JSON Schema validation tests.
+jsonschema==4.26.0

@@ -18,7 +18,7 @@ After ratification, record the approved protocol/schema/validator SHAs and share
 
 1. Confirm batch SHA-256 against the private manifest before each provider upload. Confirm Claude and Gemini receive byte-identical inputs.
 2. Use the provider-specific prompt `CLAUDE_PROMPT.md` or `GEMINI_PROMPT.md`. Keep each annotator independent; do not share output files.
-3. Save each complete JSONL response in a private output directory, not this public repo. Run Track A’s version-pinned v6.2 validator. Preserve the input batch, output, prompt hash, provider/model/version, timestamp, and validation report.
+3. Save each complete JSONL response in a private output directory, not this public repo. Install the validation test dependency with `python -m pip install -r annotation/requirements-v6-validation.txt`. Run `python -m unittest tests.test_annotation_v6_2_protocol` for standard Draft 2020-12 validation and `python contributor_annotation/protocol/validate_v6_annotations.py PRIVATE\claude\batch_001.jsonl` (use the matching provider path) for cross-turn semantics and hash checks. Preserve the input batch, output, prompt hash, provider/model/version, timestamp, and validation reports.
 4. Freeze both outputs for the batch. Then run the comparison tool:
 
    ```powershell
@@ -38,4 +38,3 @@ The comparator requires the v6.2 source-turn hash defined in the ratified protoc
 ## No public submission of private material
 
 Do not push batches, conversation text, full manifests containing IDs, provider outputs, credentials, or adjudication text to GitHub. Safe scripts, synthetic fixtures, sanitized manifests, and instructions may be committed to this contributor branch. Never merge to `main`.
-

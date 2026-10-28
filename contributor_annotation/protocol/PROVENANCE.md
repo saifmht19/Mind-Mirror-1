@@ -1,13 +1,12 @@
 # Protocol artifact provenance
 
-These are verbatim proposal snapshots fetched from `saifmht19/Mind-Mirror-1` branch `v6-protocol-freeze` at commit `afe1f584b8867fa65c8c2e791d4cbc83f915f04f` on 2026-10-28. They are copied here for contributor reproducibility, not promoted to approved/frozen status.
+The baseline artifacts were fetched from `saifmht19/Mind-Mirror-1` branch `v6-protocol-freeze` at commit `afe1f584b8867fa65c8c2e791d4cbc83f915f04f` on 2026-10-28. The protocol, addendum, schema, and validator were then revised as a pre-ratification candidate and committed on the same branch at `2ba3414fd1f53eb014e84745a3d8b5a841fc7902`. The current contributor copies correspond to these new candidate blobs; the v6.2.0 status remains pending research-lead ratification.
 
-| Contributor copy | Original path | Original blob SHA |
+| Contributor copy | Canonical path at `2ba3414fd1f53eb014e84745a3d8b5a841fc7902` | Candidate blob SHA |
 |---|---|---|
-| `annotation_protocol_v6.2.0.md` | `docs/annotation_protocol_v6.2.0.md` | `fd3f8377621bd24bfbb1c267a10836752c235805` |
-| `spec_v6.2_annotation_addendum.md` | `docs/spec_v6.2_annotation_addendum.md` | `ccfdda8e6931ab97918c690341c3826cd36b2207` |
-| `mindmirror_v6_annotation.v2.schema.json` | `annotation/schema/mindmirror_v6_annotation.v2.schema.json` | `8f83a6cc7e4ed369c679883690ff5d5666a4d225` |
-| `validate_v6_annotations.py` | `annotation/validate_v6_annotations.py` | `c9839eb96b0025b55b44e148bf41e72a7af4ed74` |
+| `annotation_protocol_v6.2.0.md` | `docs/annotation_protocol_v6.2.0.md` | `6ec1aa2f0926e31e5795fc91a168a62351d2b581` |
+| `spec_v6.2_annotation_addendum.md` | `docs/spec_v6.2_annotation_addendum.md` | `6544217888b53467af064bc312b2f6690c7ccc9b` |
+| `mindmirror_v6_annotation.v2.schema.json` | `annotation/schema/mindmirror_v6_annotation.v2.schema.json` | `3630bd0b9a8925bab6810716c87f12b25b12fab2` |
+| `validate_v6_annotations.py` | `annotation/validate_v6_annotations.py` | `4d80dd473aea58bfb594a61e738967d233ed0e09` |
 
-The source artifacts explicitly say v6.2.0 is pending research-lead ratification. Do not alter these snapshots locally or treat their presence on this branch as approval. The research lead must update/ratify upstream after resolving the checklist. Any later approved files should be re-copied with new source commit and blob SHAs recorded here.
-
+The baseline source artifacts explicitly said v6.2.0 was pending research-lead ratification. This correction does not itself ratify it. Do not begin annotation or treat a passing test as approval. Record the new protocol commit and blob SHAs after push; preserve the v6.1.0 files and all existing records.

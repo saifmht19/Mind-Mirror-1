@@ -2,7 +2,7 @@
 
 ## Protocol status
 
-Track A v6.1.0 at commit 4e8d652e0692e183ba6946fea966f4bdafd5afb4 is frozen, but its pressure anchors and other-dark-pattern-only primary rule were identified as needing research-lead ratification before large-scale annotation. A v6.2.0 proposal is on v6-protocol-freeze at commit afe1f584b8867fa65c8c2e791d4cbc83f915f04f. It implements the proposed revised pressure anchors and six-tactic vocabulary, but remains pending ratification. Do not annotate until ratified. The v6.1.0 protocol, schema v1, legacy validator behavior, and previously adjudicated labels remain unchanged. v6.2.0 uses schema 2.0.0 and does not retroactively relabel.
+The corrected v6.2.0 proposal and schema 2.0.0 candidate are on `v6-protocol-freeze` at commit `2ba3414fd1f53eb014e84745a3d8b5a841fc7902`. It defines exactly six pilot tactics, a six-class-only `any_manipulation` target, a separate out-of-taxonomy review flag, explicit user refusal booleans/null spans, deterministic source hashing, contextual pressure 0–3, and the existing refusal-conditioned escalation rule. The schema/validator mismatches are corrected and tested with Draft 2020-12 `jsonschema` plus the Python validator. It remains pending explicit research-lead ratification. Do not annotate until ratified and provider-sharing authorization is recorded. The frozen v6.1.0 contract and all prior labels remain unchanged.
 
 ## Exact local inputs found
 
@@ -14,7 +14,7 @@ Track A v6.1.0 at commit 4e8d652e0692e183ba6946fea966f4bdafd5afb4 is frozen, but
 
 The contributor scripts now target proposed v6.2.0 and its Track A commit. The builder whitelists only conversation ID, domain, and ordered turn index/speaker/text. The validator checks source and pilot file hashes, 800/20/780 counts, exact pilot exclusion, unique IDs, text preservation against source, turn structure, and batch hashes. Claude and Gemini receive the same batch files byte-for-byte.
 
-Real batches are generated only in the private local distribution directory. Annotation remains paused until v6.2.0 is ratified. After ratification, verify the manifest still references the approved protocol SHA before distributing.
+Real batches remain only in the private local distribution directory. Annotation remains paused until v6.2.0 is ratified. The sanitized public manifest now references protocol commit `2ba3414fd1f53eb014e84745a3d8b5a841fc7902`; the batch hashes remain unchanged. After ratification, verify the manifest references the approved protocol SHA before distributing.
 
 ## Local batch run
 

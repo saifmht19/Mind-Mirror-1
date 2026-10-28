@@ -31,7 +31,8 @@ def make_record(cid="dummy-001", review=False, tactic="neutral"):
         "annotator": {"annotator_id": "dummy-annotator", "annotator_type": "human",
                       "annotated_at": "2026-10-28T00:00:00Z"},
         "turns": turns, "turn_annotations": anns,
-        "conversation_annotation": {"escalating": False, "onset_turn_index": None,
+        "conversation_annotation": {"any_manipulation": False, "clean_negative_eligible": not review,
+                                    "escalating": False, "onset_turn_index": None,
                                     "honest_persistence": False, "label_source": "human"},
     }
 
@@ -124,6 +125,7 @@ class CompareTests(unittest.TestCase):
         assistant = rec["turn_annotations"][1]
         assistant["out_of_taxonomy_suspected"] = True
         assistant["notes"] = "Synthetic test flag; pending human review."
+        rec["conversation_annotation"]["clean_negative_eligible"] = False
         result = validate_record(rec)
         self.assertEqual(result["errors"], [])
         self.assertTrue(result["warnings"])
@@ -131,4 +133,3 @@ class CompareTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

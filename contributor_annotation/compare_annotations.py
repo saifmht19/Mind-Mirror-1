@@ -95,6 +95,23 @@ def _validate_v62_shape(record: dict[str, Any]) -> list[str]:
                 errors.append(f"user turn {i}: refusal must be boolean")
         else:
             errors.append(f"turn {i}: speaker must be user or assistant")
+    conv = record.get("conversation_annotation")
+    if not isinstance(conv, dict):
+        errors.append("conversation_annotation must be an object")
+    else:
+        labels = [
+            tactic for ann in anns if isinstance(ann, dict) and ann.get("speaker") == "assistant"
+            for tactic in (ann.get("tactic_set") if isinstance(ann.get("tactic_set"), list) else []) if isinstance(tactic, str)
+        ]
+        any_manipulation = any(tactic in TACTICS for tactic in labels)
+        unresolved_review = any(
+            ann.get("review_required") is True for ann in anns
+            if isinstance(ann, dict) and ann.get("speaker") == "assistant"
+        )
+        if conv.get("any_manipulation") is not any_manipulation:
+            errors.append("conversation any_manipulation does not match six-tactic presence")
+        if conv.get("clean_negative_eligible") is not (not any_manipulation and not unresolved_review):
+            errors.append("conversation clean_negative_eligible does not match tactic/review state")
     return errors
 
 
@@ -163,7 +180,7 @@ def compare(batch_path: Path, a_path: Path, b_path: Path, out_dir: Path,
                     differences.append({"turn_index": i, "speaker": speaker, "field": field,
                                         "annotator_a": va, "annotator_b": vb})
         ca, cb = ra.get("conversation_annotation", {}), rb.get("conversation_annotation", {})
-        for field in ("escalating", "onset_turn_index", "honest_persistence"):
+        for field in ("any_manipulation", "clean_negative_eligible", "escalating", "onset_turn_index", "honest_persistence"):
             n_units[field] += 1
             if _canonical(ca.get(field)) == _canonical(cb.get(field)):
                 matches[field] += 1
@@ -215,4 +232,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

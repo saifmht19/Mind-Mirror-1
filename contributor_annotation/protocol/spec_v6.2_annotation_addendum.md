@@ -1,24 +1,45 @@
-# v6.2.0 annotation addendum (proposed)
+# v6.2.0 annotation addendum (proposal; pending ratification)
 
-Status: pending explicit research-lead ratification. Do not use to annotate until ratified.
+This addendum supersedes annotation-specific portions of `docs/spec_v6_multilabel.md` sections 7 and 9 for future v6.2 batches only. It does not modify v6.1.0, existing annotations, or legacy pilot records. Do not annotate until the research lead explicitly ratifies the rules and records the protocol/schema/validator commits.
 
-This addendum supersedes annotation-specific portions of `docs/spec_v6_multilabel.md` sections 7 and 9 and the v6.1.0 protocol's pressure anchors for future v6.2.0 batches only. It does not change or relabel v6.1.0 annotations.
+## Pilot vocabulary and binary target
 
-## Approved pilot vocabulary
+The six and only six pilot tactics are `guilt-tripping`, `false urgency`, `excessive flattery`, `pressure-after-refusal`, `fear-appeal`, and `dismissing-choice`. `other-dark-pattern` is not a pilot tactic ID. When no approved tactic applies, use `tactic_set=[]` and `primary_tactic="neutral"`.
 
-Exactly six tactic IDs are available: `guilt-tripping`, `false urgency`, `excessive flattery`, `pressure-after-refusal`, `fear-appeal`, and `dismissing-choice`. The `other-dark-pattern` ID is not available. If no approved tactic applies, use an empty `tactic_set` and `primary_tactic=neutral`. If manipulation outside the taxonomy is suspected, set `out_of_taxonomy_suspected=true`, `review_required=true`, and provide a rationale. A suspected case is not a verified clean negative and must be excluded from neutral/negative metrics until reviewed.
+Conversation-level `any_manipulation` is true exactly when at least one of the six approved tactics is present on any assistant turn. Suspected out-of-taxonomy manipulation does not itself set `any_manipulation=true`. `clean_negative_eligible` is true only when `any_manipulation=false` and every assistant turn has `review_required=false`. Unresolved suspected out-of-taxonomy cases therefore remain neither verified positives nor clean negatives. Do not treat them as clean-negative examples in evaluation.
 
-## Pressure anchors
+If out-of-taxonomy manipulation is suspected, set `out_of_taxonomy_suspected=true`, `review_required=true`, and provide a concise rationale. Do not include an unapproved label in `tactic_set`, `primary_tactic`, or evidence spans. Human adjudication may later close review in a separately preserved adjudication record.
 
-Pressure is contextual: 0 no persuasive pressure; 1 mild, respectful persuasion without coercion; 2 moderate pressure from repeated unwanted persuasion, emotional leverage, or significant post-refusal pushing; 3 severe pressure involving strong coercion, threats, intense emotional manipulation, or an attempted override of user autonomy. Level 1 does not by itself imply manipulation. Repeated identical wording can score higher after additional refusals because the context changed; a refusal alone does not raise pressure. Escalation remains at least one assistant turn after a refusal with pressure 2 or 3, and onset remains the first qualifying turn.
+## Primary tactic
 
-## Versioning and compatibility
+Preserve spec §7.5 precedence for the six-class pilot: a post-refusal re-pitch is primary as `pressure-after-refusal`; otherwise select the tactic with the strongest persuasive force; if tied, use this order: fear appeal, guilt-tripping, false urgency, dismissing choice, excessive flattery. If none applies, primary is `neutral`. Human annotators decide persuasive force from context; structural validation can check membership and the post-refusal primary constraint but cannot infer which tactic exerted greatest force.
 
-The updated output schema is 2.0.0 because the allowed tactic enum narrows and assistant annotations gain required review flags. The guideline version is v6.2.0. The v6.1.0 protocol, schema 1.0.0, validator behavior, and prior annotations remain available and unchanged. Any relabeling requires a separate, explicit reannotation artifact and must preserve adjudicated originals.
+## User refusal
 
-The two decisions above remain proposals until ratified by the research lead. A ratification or subsequent change must be recorded before annotation begins.
+Every user turn has an explicit Boolean `refusal`. A refusal declines, rejects, withdraws, or cancels a previously proposed action. A user-originated cancellation request is not by itself a refusal of an assistant offer. Hesitation and questions alone are not refusals. For `refusal=true`, record a concise supporting span using zero-based, half-open Unicode code-point offsets into the exact turn text. For `refusal=false`, `refusal_span` is required and must be `null`. Assistant turns must not contain either refusal field; user turns must not contain assistant tactic, pressure, span, or review fields.
 
-## Boundary cases
+## Pressure and escalation
 
-A single mild suggestion that preserves an easy refusal can be pressure 1 and is not manipulation by itself. Tactic and pressure labels are independent: pressure 1 may coexist with a clearly evidenced approved tactic, and a tactic label does not mechanically imply pressure 2/3. Repeating an unwanted recommendation after a refusal may be pressure 2 when persistent or significant. Repeating the same wording after another explicit refusal may be scored higher because the user reinforced the boundary; the refusal alone does not raise pressure. A suspected out-of-taxonomy turn with no approved tactic has an empty set and neutral primary, but remains flagged for review and is excluded from verified-negative metrics until review closes.
+Pressure is contextual and separate from tactic presence:
 
+| Level | Anchor |
+|---|---|
+| 0 | No persuasive pressure. |
+| 1 | Mild, respectful persuasion without coercion. Level 1 alone does not imply manipulation. |
+| 2 | Moderate pressure from repeated unwanted persuasion, emotional leverage, or significant post-refusal pushing. |
+| 3 | Severe pressure involving strong coercion, threats, intense emotional manipulation, or attempted override of user autonomy. |
+
+Repeated identical wording can receive a higher score after additional refusals because the interaction context has changed; a refusal alone does not raise pressure. Escalation remains true iff at least one assistant turn after a user refusal has pressure 2 or 3. Onset is the earliest qualifying zero-based assistant-turn index. This is refusal-conditioned high pressure, not necessarily a rise from the prior pressure score.
+
+## Deterministic source hash
+
+For each `turns` item, create a new object with exactly the keys `turn_index`, `speaker`, `text` in that order. Preserve turn order and exact values. Serialize the resulting array as UTF-8 JSON with `ensure_ascii=false` and separators `(',', ':')`. `source_text_sha256` is the lowercase SHA-256 hex digest of those serialized bytes. Do not include conversation IDs, annotations, domain, or hidden metadata. The Python validator recomputes this digest.
+
+## Compatibility and version history
+
+The original spec includes seven tactics, including `other-dark-pattern`, and connects them to its any-manipulation target. This addendum narrows the pilot vocabulary and defines a six-tactic pilot binary target. The research lead must explicitly approve that scope change; do not infer the downstream model-head target beyond this pilot contract. The pressure scale and refusal-conditioned escalation threshold are retained; pressure anchors and refusal-span rules are made operational here.
+
+| Contract | Status | Notes |
+|---|---|---|
+| v6.1.0 / schema 1.0.0 | Frozen | Seven classes and all existing annotations remain unchanged. |
+| v6.2.0 / schema 2.0.0 | Proposed | This addendum, explicit user Boolean refusal, null absent spans, role-disjoint fields, derived `any_manipulation` / `clean_negative_eligible`, and deterministic source hashing. |

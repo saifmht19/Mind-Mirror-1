@@ -2,7 +2,7 @@
   "manifest_version": "mindmirror-v6-distribution-summary-1.0.0",
   "status": "pending_research_lead_ratification",
   "protocol_version": "v6.2.0",
-  "protocol_commit_sha": "afe1f584b8867fa65c8c2e791d4cbc83f915f04f",
+  "protocol_commit_sha": "2ba3414fd1f53eb014e84745a3d8b5a841fc7902",
   "format_version": "mindmirror-v6-blinded-input-1.0.0",
   "total_dataset": 800,
   "pilot_excluded": 20,
