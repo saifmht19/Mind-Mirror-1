@@ -40,8 +40,12 @@ def load_jsonl(path: Path) -> list[dict[str, Any]]:
 
 
 def canonical_source_hash(turns: list[dict[str, Any]]) -> str:
-    """SHA-256 of UTF-8 JSON for ordered turns, compact and non-ASCII-preserving."""
-    payload = json.dumps(turns, ensure_ascii=False, separators=(",", ":"))
+    """SHA-256 ordered turn values with fixed keys and compact UTF-8 JSON."""
+    canonical_turns = [
+        {key: turn[key] for key in ("turn_index", "speaker", "text")}
+        for turn in turns
+    ]
+    payload = json.dumps(canonical_turns, ensure_ascii=False, separators=(",", ":"))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
