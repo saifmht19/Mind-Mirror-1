@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Version-aware structural and cross-turn validation for MindMirror v6.1.0 and proposed v6.2.0 annotation JSONL.
+"""Version-aware structural and cross-turn validation for MindMirror v6.1.0 and ratified v6.2.0 annotation JSONL.
 
 Uses only the Python standard library. It validates evidence spans, role-specific
 fields, tactic sets, primary-label precedence constraints, refusal evidence, and
-the canonical v6 post-refusal pressure/onset rule. It does not infer labels from
+the canonical v6 post-refusal pressure/onset rule. The v6.2.0 ratification is recorded
+in v6-protocol-freeze/docs/annotation_protocol_v6.2.0_ratification_checklist.md.
+It does not infer labels from
 text or adjudicate semantic claims.
 """
 from __future__ import annotations

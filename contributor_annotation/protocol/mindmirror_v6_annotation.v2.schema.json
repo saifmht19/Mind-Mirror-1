@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:mindmirror:v6:annotation:2.0.0",
   "title": "MindMirror v6.2 turn-level annotation record",
-  "description": "Proposed v6.2.0 contract. The Python validator enforces cross-turn and text-span rules that JSON Schema cannot express.",
+  "description": "Ratified MindMirror v6.2.0 contract (research-lead approval recorded 2026-10-28; see v6-protocol-freeze/docs/annotation_protocol_v6.2.0_ratification_checklist.md). The Python validator enforces cross-turn and text-span rules that JSON Schema cannot express. This status description does not change schema constraints.",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema_version", "guideline_version", "conversation_id", "source_text_sha256", "annotator", "turns", "turn_annotations", "conversation_annotation"],

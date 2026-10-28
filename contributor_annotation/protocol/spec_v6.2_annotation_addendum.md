@@ -1,6 +1,6 @@
-# v6.2.0 annotation addendum (proposal; pending ratification)
+# v6.2.0 annotation addendum (ratified snapshot)
 
-This addendum supersedes annotation-specific portions of `docs/spec_v6_multilabel.md` sections 7 and 9 for future v6.2 batches only. It does not modify v6.1.0, existing annotations, or legacy pilot records. Do not annotate until the research lead explicitly ratifies the rules and records the protocol/schema/validator commits.
+This contributor snapshot records the v6.2.0 addendum rules ratified by the research lead on 2026-10-28. The approval record is `v6-protocol-freeze/docs/annotation_protocol_v6.2.0_ratification_checklist.md` at commit `71cbc4600e7b6eda7bec637a921bda32326d572c`. It applies only to future v6.2 batches; it does not modify v6.1.0, existing annotations, or legacy pilot records. Provider/data-sharing authorization remains a separate gate. Rule text below is preserved from the pre-ratification snapshot; only status and provenance language are updated here.
 
 ## Pilot vocabulary and binary target
 
@@ -37,9 +37,9 @@ For each `turns` item, create a new object with exactly the keys `turn_index`, `
 
 ## Compatibility and version history
 
-The original spec includes seven tactics, including `other-dark-pattern`, and connects them to its any-manipulation target. This addendum narrows the pilot vocabulary and defines a six-tactic pilot binary target. The research lead must explicitly approve that scope change; do not infer the downstream model-head target beyond this pilot contract. The pressure scale and refusal-conditioned escalation threshold are retained; pressure anchors and refusal-span rules are made operational here.
+The original spec includes seven tactics, including `other-dark-pattern`, and connects them to its any-manipulation target. This ratified addendum narrows the pilot vocabulary and defines a six-tactic pilot binary target. This pilot-specific scope does not redefine the downstream model-head target beyond this contract. The pressure scale and refusal-conditioned escalation threshold are retained; pressure anchors and refusal-span rules are made operational here.
 
 | Contract | Status | Notes |
 |---|---|---|
 | v6.1.0 / schema 1.0.0 | Frozen | Seven classes and all existing annotations remain unchanged. |
-| v6.2.0 / schema 2.0.0 | Proposed | This addendum, explicit user Boolean refusal, null absent spans, role-disjoint fields, derived `any_manipulation` / `clean_negative_eligible`, and deterministic source hashing. |
+| v6.2.0 / schema 2.0.0 | Ratified 2026-10-28 | This addendum, explicit user Boolean refusal, null absent spans, role-disjoint fields, derived `any_manipulation` / `clean_negative_eligible`, and deterministic source hashing. |

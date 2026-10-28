@@ -2,7 +2,7 @@
 
 ## Protocol and data status
 
-Protocol v6.2.0 / schema 2.0.0 was ratified on 2026-10-28. The committed ratification record and canonical protocol are on `v6-protocol-freeze`; the approved schema and Python validator blob SHAs are `3630bd0b9a8925bab6810716c87f12b25b12fab2` and `4d80dd473aea58bfb594a61e738967d233ed0e09`. The contributor schema and validator copies are byte-identical to those approved blobs. **Documentation blocker:** the contributor folder's duplicate protocol, addendum, and provenance files still contain pre-ratification/pending language, and the canonical addendum file itself retains a pending-status banner despite the ratified protocol and checklist. These frozen protocol artifacts were not edited here; for the approved status and rules, consult `v6-protocol-freeze/docs/annotation_protocol_v6.2.0.md` and its committed ratification checklist. Ratification does not itself authorize a particular provider upload; follow the project's separate data-sharing authorization and applicable provider terms.
+Protocol v6.2.0 / schema 2.0.0 was ratified on 2026-10-28. The canonical protocol and approval record are on `v6-protocol-freeze`; the approval commit is `71cbc4600e7b6eda7bec637a921bda32326d572c`, and the approved source schema/validator blobs are `3630bd0b9a8925bab6810716c87f12b25b12fab2` and `4d80dd473aea58bfb594a61e738967d233ed0e09`. Contributor snapshots now identify ratification while preserving the six-tactic contract, schema constraints, validator behavior, hash recipe, batch hashes, and past annotations. The canonical addendum file still has a pre-ratification banner in its frozen source; the committed protocol and ratification checklist establish the approved status. **Provider sharing is not authorized by that ratification record. Do not send conversation text to Claude, Gemini, or another provider unless a separate authorization is recorded.** See [PROVENANCE.md](protocol/PROVENANCE.md) for candidate and ratified-source SHAs.
 
 No real 780-record annotation is performed by this tooling task. Keep blinded inputs, raw Claude/Gemini responses, normalized private outputs, manifests containing IDs, credentials, and adjudication notes outside Git. Only code, synthetic fixtures, and documentation belong in this repository.
 
@@ -14,10 +14,10 @@ From the repository root in PowerShell:
 
 ```powershell
 python -m pip install -r annotation/requirements-v6-validation.txt
-python -m unittest tests.test_postprocess_annotations -v
+python -m unittest tests.test_annotation_v6_2_protocol tests.test_contributor_compare tests.test_evaluation_prep tests.test_postprocess_annotations -v
 ```
 
-The postprocessor and assembler run both `jsonschema.Draft202012Validator` and the approved Python `validate_record` implementation. They fail closed and do not overwrite existing outputs. The transformation log records raw/input/output SHA-256 digests, prompt digest, external model metadata, time, per-record span counts, derived values, and validator warnings. It does not copy conversation text or quoted spans into the log.
+The postprocessor and assembler run both `jsonschema.Draft202012Validator` and the approved Python `validate_record` implementation. They fail closed and do not overwrite existing outputs. The schema description and validator docstring in this contributor snapshot identify the ratified record; constraints, executable logic, and the source-text hash algorithm are unchanged. The approved upstream blob SHAs and documentation-only snapshot SHAs are preserved in [PROVENANCE.md](protocol/PROVENANCE.md). The transformation log records raw/input/output SHA-256 digests, prompt digest, external model metadata, time, per-record span counts, derived values, and validator warnings. It does not copy conversation text or quoted spans into the log.
 
 ## Process Claude output
 
