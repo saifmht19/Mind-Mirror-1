@@ -1,40 +1,76 @@
-# MindMirror v6 contributor annotation handoff
+# MindMirror v6.2.0 contributor annotation pipeline
 
-## Status and authorization gate
+## Protocol and data status
 
-The v6.2.0 protocol / schema 2.0.0 on `v6-protocol-freeze` was **ratified by the research lead on 2026-10-28** (ratification commit `3a6f13b2bdbbf63a9d03f39d5744e0a775ae4c25`; protocol status commit `71cbc4600e7b6eda7bec637a921bda32326d572c`). **Provider sharing authorized by research lead on 2026-10-28:** the two contributors may privately upload the 780 blinded synthetic MindMirror conversations to Claude and Gemini respectively, solely for independent research annotation. This does not authorize public posting, unrelated use, sharing annotator outputs before freeze, or uploading unblinded/private third-party data. Check the local inputs before sharing; uploads are performed manually by contributors, not by this repository. The current public GitHub repository is not a distribution location for the private conversation batches.
+Protocol v6.2.0 / schema 2.0.0 was ratified on 2026-10-28. The committed ratification record and canonical protocol are on `v6-protocol-freeze`; the approved schema and Python validator blob SHAs are `3630bd0b9a8925bab6810716c87f12b25b12fab2` and `4d80dd473aea58bfb594a61e738967d233ed0e09`. The contributor copies are expected to remain byte-identical to those approved files. Ratification does not itself authorize a particular provider upload; follow the project's separate data-sharing authorization and applicable provider terms.
 
-The approved protocol/schema/validator candidate is commit `2ba3414fd1f53eb014e84745a3d8b5a841fc7902`. Provider sharing is now approved for the scoped synthetic batches. Share the same private input files with both contributors, confirm source and batch hashes before upload, and comply with the chosen providers' data-handling settings. Do not divide batches between the models. Each model submits independently and must not see the other model’s output before both are frozen.
+No real 780-record annotation is performed by this tooling task. Keep blinded inputs, raw Claude/Gemini responses, normalized private outputs, manifests containing IDs, credentials, and adjudication notes outside Git. Only code, synthetic fixtures, and documentation belong in this repository.
 
-## Local resources
+The working raw-output format is specified in [RAW_MODEL_OUTPUT_CONTRACT.md](RAW_MODEL_OUTPUT_CONTRACT.md). The provider prompts are [Claude](CLAUDE_PROMPT.md) and [Gemini](GEMINI_PROMPT.md). Save each raw response unchanged before processing; do not edit it to satisfy the schema.
 
-- The private, pre-generated 780 record input batches and full ID-bearing manifest are kept outside this repository. Their protected distribution folder is `mindmirror-v6-private-batches`; it contains `claude/inputs` and `gemini/inputs` identical copies. Do not commit these folders or conversation text.
-- The public `distribution_manifest.json` is sanitized: filenames/counts/hashes only, no conversation IDs or text.
-- The exact local v6 pilot is the separate derived `annotation_pilot_20.jsonl`; do not substitute legacy `annotation/pilot_dataset.json`.
-- The approved ratification record is `docs/annotation_protocol_v6.2.0_ratification_checklist.md` on `v6-protocol-freeze`. Historical issue-level uncertainties remain open; they are not a blocker to distributing **new** batches once provider sharing is approved, but must be resolved for evaluation.
-- `examples/DUMMY_ONLY_NOT_DATASET.jsonl` is synthetic test material and must never be scored as corpus data.
+## Install and verify
 
-## Per-batch workflow (provider sharing authorized 2026-10-28)
+From the repository root in PowerShell:
 
-1. Confirm batch SHA-256 against the private manifest before each provider upload. Confirm Claude and Gemini receive byte-identical inputs.
-2. Use the provider-specific prompt `CLAUDE_PROMPT.md` or `GEMINI_PROMPT.md`. Keep each annotator independent; do not share output files.
-3. Save each complete JSONL response in a private output directory, not this public repo. Install the validation test dependency with `python -m pip install -r annotation/requirements-v6-validation.txt`. Run `python -m unittest tests.test_annotation_v6_2_protocol` for standard Draft 2020-12 validation and `python contributor_annotation/protocol/validate_v6_annotations.py PRIVATE\claude\batch_001.jsonl` (use the matching provider path) for cross-turn semantics and hash checks. Preserve the input batch, output, prompt hash, provider/model/version, timestamp, and validation reports.
-4. Freeze both outputs for the batch. Then run the comparison tool:
+```powershell
+python -m pip install -r annotation/requirements-v6-validation.txt
+python -m unittest tests.test_postprocess_annotations -v
+```
 
-   ```powershell
-   python contributor_annotation/compare_annotations.py `
-     --batch PRIVATE\batch_001.jsonl `
-     --annotator-a PRIVATE\claude\batch_001.jsonl `
-     --annotator-b PRIVATE\gemini\batch_001.jsonl `
-     --out-dir PRIVATE\review\batch_001 `
-     --validator contributor_annotation\protocol\validate_v6_annotations.py
-   ```
+The postprocessor and assembler run both `jsonschema.Draft202012Validator` and the approved Python `validate_record` implementation. They fail closed and do not overwrite existing outputs. The transformation log records raw/input/output SHA-256 digests, prompt digest, external model metadata, time, per-record span counts, derived values, and validator warnings. It does not copy conversation text or quoted spans into the log.
 
-5. The tool writes `comparison.json` and `disagreement_queue.jsonl`. The queue includes disagreement or review flags, not conversation text, and every item remains pending until a human adjudicator records a separate decision and rationale. Never overwrite raw provider outputs.
-6. Report AI-AI agreement separately. It is not human inter-annotator agreement, gold-standard accuracy, or adjudication. Human IAA requires independently collected human labels and a specified statistic.
+## Process Claude output
 
-The comparator requires the deterministic v6.2 source-turn SHA-256 algorithm ratified by the research lead on 2026-10-28.
+Store all paths below in the private distribution directory. Each raw file is a verbatim provider response exported as JSONL for one 5–10 conversation chunk.
 
-## No public submission of private material
+```powershell
+python contributor_annotation/postprocess_annotations.py `
+  --input "PRIVATE\claude\inputs\batch_001\chunk_001.jsonl" `
+  --raw-output "PRIVATE\claude\raw\batch_001\chunk_001.jsonl" `
+  --output "PRIVATE\claude\normalized\batch_001\chunk_001.jsonl" `
+  --log "PRIVATE\claude\logs\batch_001\chunk_001.transform.json" `
+  --annotator-id "claude-annotator-1" `
+  --provider "Anthropic" `
+  --model "MODEL NAME FROM PROVIDER UI" `
+  --model-version "EXACT MODEL VERSION FROM PROVIDER UI" `
+  --prompt-file contributor_annotation/CLAUDE_PROMPT.md
+```
 
-Do not push batches, conversation text, full manifests containing IDs, provider outputs, credentials, or adjudication text to GitHub. Safe scripts, synthetic fixtures, sanitized manifests, and instructions may be committed to this contributor branch. Never merge to `main`.
+## Process Gemini output
+
+Use the identical private input bytes supplied to Claude; keep provider responses separate.
+
+```powershell
+python contributor_annotation/postprocess_annotations.py `
+  --input "PRIVATE\gemini\inputs\batch_001\chunk_001.jsonl" `
+  --raw-output "PRIVATE\gemini\raw\batch_001\chunk_001.jsonl" `
+  --output "PRIVATE\gemini\normalized\batch_001\chunk_001.jsonl" `
+  --log "PRIVATE\gemini\logs\batch_001\chunk_001.transform.json" `
+  --annotator-id "gemini-annotator-1" `
+  --provider "Google" `
+  --model "MODEL NAME FROM PROVIDER UI" `
+  --model-version "EXACT MODEL VERSION FROM PROVIDER UI" `
+  --prompt-file contributor_annotation/GEMINI_PROMPT.md
+```
+
+The model name/version flags must be replaced with the actual provider-reported values. Do not leave placeholders or infer a version from the date. The prompt hash is computed from the exact prompt file bytes.
+
+## Assemble a 40-record batch from chunks
+
+Once all chunks have been independently processed, list every normalized chunk. Each chunk must contain 5–10 records; the assembler checks unique IDs, complete coverage, source turn/text identity, schema and Python validation, then writes records in the original input batch order.
+
+```powershell
+python contributor_annotation/assemble_annotation_chunks.py `
+  --batch "PRIVATE\claude\inputs\batch_001.jsonl" `
+  --chunk "PRIVATE\claude\normalized\batch_001\chunk_001.jsonl" `
+  --chunk "PRIVATE\claude\normalized\batch_001\chunk_002.jsonl" `
+  --chunk "PRIVATE\claude\normalized\batch_001\chunk_003.jsonl" `
+  --chunk "PRIVATE\claude\normalized\batch_001\chunk_004.jsonl" `
+  --output "PRIVATE\claude\normalized\batch_001.jsonl"
+```
+
+Repeat the assembly independently for Gemini with Gemini paths. Never show one provider the other provider's outputs. Only after both completed outputs are frozen should the existing comparison tool be run and its disagreement queue reviewed by a human.
+
+## Safe trial readiness
+
+The scripts and synthetic tests are designed for a five-conversation trial. Before submitting real text to a provider, the project lead must verify the current sharing authorization, the actual privately held 5-record input, the prompt/model metadata, and that the intended provider receives only the approved blinded input. The trial output remains silver annotation; no model training or corpus rewriting is part of this workflow.
