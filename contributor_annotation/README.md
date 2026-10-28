@@ -27,7 +27,7 @@ After ratification, record the approved protocol/schema/validator SHAs and share
      --annotator-a PRIVATE\claude\batch_001.jsonl `
      --annotator-b PRIVATE\gemini\batch_001.jsonl `
      --out-dir PRIVATE\review\batch_001 `
-     --validator annotation\validate_v6_annotations.py
+     --validator contributor_annotation\protocol\validate_v6_annotations.py
    ```
 
 5. The tool writes `comparison.json` and `disagreement_queue.jsonl`. The queue includes disagreement or review flags, not conversation text, and every item remains pending until a human adjudicator records a separate decision and rationale. Never overwrite raw provider outputs.
