@@ -2,19 +2,19 @@
 
 ## Status and authorization gate
 
-The v6.2.0 protocol on `v6-protocol-freeze` is **proposed, not ratified**. Do not annotate the 780 records or submit conversation text to Claude/Gemini until (a) the research lead commits the completed `V6.2_RATIFICATION_CHECKLIST.md` decisions and (b) explicitly authorizes sharing with those providers. The current public GitHub repository is not a distribution location for the private conversation batches.
+The v6.2.0 protocol / schema 2.0.0 on `v6-protocol-freeze` was **ratified by the research lead on 2026-10-28** (ratification commit `3a6f13b2bdbbf63a9d03f39d5744e0a775ae4c25`; protocol status commit `71cbc4600e7b6eda7bec637a921bda32326d572c`). **Do not submit conversation text to Claude/Gemini until the research lead separately authorizes sharing with those providers.** The current public GitHub repository is not a distribution location for the private conversation batches.
 
-After ratification, record the approved protocol/schema/validator SHAs and share the same input files with both contributors. Do not divide batches between the models. Each model submits independently and must not see the other model’s output before both are frozen.
+The approved protocol/schema/validator candidate is commit `2ba3414fd1f53eb014e84745a3d8b5a841fc7902`. Once provider-sharing approval is obtained, share the same private input files with both contributors. Do not divide batches between the models. Each model submits independently and must not see the other model’s output before both are frozen.
 
 ## Local resources
 
 - The private, pre-generated 780 record input batches and full ID-bearing manifest are kept outside this repository. Their protected distribution folder is `mindmirror-v6-private-batches`; it contains `claude/inputs` and `gemini/inputs` identical copies. Do not commit these folders or conversation text.
 - The public `distribution_manifest.json` is sanitized: filenames/counts/hashes only, no conversation IDs or text.
 - The exact local v6 pilot is the separate derived `annotation_pilot_20.jsonl`; do not substitute legacy `annotation/pilot_dataset.json`.
-- `V6.2_RATIFICATION_CHECKLIST.md` records semantic and schema blockers. It is not an approval record.
+- The approved ratification record is `docs/annotation_protocol_v6.2.0_ratification_checklist.md` on `v6-protocol-freeze`. Historical issue-level uncertainties remain open; they are not a blocker to distributing **new** batches once provider sharing is approved, but must be resolved for evaluation.
 - `examples/DUMMY_ONLY_NOT_DATASET.jsonl` is synthetic test material and must never be scored as corpus data.
 
-## Per-batch workflow (only after both gates)
+## Per-batch workflow (only after provider sharing authorization)
 
 1. Confirm batch SHA-256 against the private manifest before each provider upload. Confirm Claude and Gemini receive byte-identical inputs.
 2. Use the provider-specific prompt `CLAUDE_PROMPT.md` or `GEMINI_PROMPT.md`. Keep each annotator independent; do not share output files.
@@ -33,7 +33,7 @@ After ratification, record the approved protocol/schema/validator SHAs and share
 5. The tool writes `comparison.json` and `disagreement_queue.jsonl`. The queue includes disagreement or review flags, not conversation text, and every item remains pending until a human adjudicator records a separate decision and rationale. Never overwrite raw provider outputs.
 6. Report AI-AI agreement separately. It is not human inter-annotator agreement, gold-standard accuracy, or adjudication. Human IAA requires independently collected human labels and a specified statistic.
 
-The comparator requires the v6.2 source-turn hash defined in the ratified protocol. The currently proposed algorithm is documented in the checklist; it must not be treated as approved until the lead selects it.
+The comparator requires the deterministic v6.2 source-turn SHA-256 algorithm ratified by the research lead on 2026-10-28.
 
 ## No public submission of private material
 
