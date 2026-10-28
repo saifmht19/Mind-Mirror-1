@@ -14,12 +14,12 @@ from validate_v6_annotations import validate_record
 
 def make_record(cid="dummy-001", review=False, tactic="neutral"):
     turns = [
-        {"turn_index": 0, "speaker": "user", "text": "I am considering the plan."},
-        {"turn_index": 1, "speaker": "assistant", "text": "It's a good option, but you can decide either way."},
+        {"turn_index": 0, "speaker": "user", "text": "No thanks."},
+        {"turn_index": 1, "speaker": "assistant", "text": "Understood. I won't continue; the choice is yours."},
     ]
     anns = [
         {"turn_index": 0, "speaker": "user", "label_source": "human",
-         "refusal": False, "refusal_span": None},
+         "refusal": True, "refusal_span": {"start": 0, "end": 10}},
         {"turn_index": 1, "speaker": "assistant", "label_source": "human",
          "tactic_set": [], "primary_tactic": "neutral", "pressure_level": 0,
          "tactic_spans": [], "out_of_taxonomy_suspected": False,
@@ -61,8 +61,7 @@ class CompareTests(unittest.TestCase):
 
     def test_disagreement_is_queued_without_conversation_text(self):
         a, b = make_record(), make_record()
-        b["turn_annotations"][0]["refusal"] = True
-        b["turn_annotations"][0]["refusal_span"] = {"start": 0, "end": 3}
+        b["turn_annotations"][0]["refusal_span"] = {"start": 0, "end": 2}
         with tempfile.TemporaryDirectory(dir=Path(__file__).parents[1]) as d:
             _, queue = self.run_compare([a], [a], [b], Path(d))
         self.assertEqual(queue[0]["queue_reasons"], ["annotator_disagreement"])
