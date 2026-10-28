@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Structural and cross-turn validation for MindMirror v6 annotation JSONL.
+"""Version-aware structural and cross-turn validation for MindMirror v6.1.0 and proposed v6.2.0 annotation JSONL.
 
 Uses only the Python standard library. It validates evidence spans, role-specific
 fields, tactic sets, primary-label precedence constraints, refusal evidence, and
@@ -14,12 +14,13 @@ import re
 from pathlib import Path
 from typing import Any
 
-TACTICS = {
+TACTICS_V1 = {
     "guilt-tripping", "false urgency", "excessive flattery",
-    "pressure-after-refusal", "fear-appeal", "dismissing-choice",
-    "other-dark-pattern",
+    "pressure-after-refusal", "fear-appeal", "dismissing-choice", "other-dark-pattern",
 }
-PRIMARY = TACTICS | {"neutral"}
+TACTICS_V2 = TACTICS_V1 - {"other-dark-pattern"}
+PRIMARY_V1 = TACTICS_V1 | {"neutral"}
+PRIMARY_V2 = TACTICS_V2 | {"neutral"}
 LABEL_SOURCES = {"human", "adjudicated", "labeler", "scenario", "mapped"}
 HASH = re.compile(r"^[0-9a-f]{64}$")
 
@@ -41,8 +42,16 @@ def validate_record(record: dict[str, Any]) -> dict[str, list[str]]:
     errors: list[str] = []
     warnings: list[str] = []
     def err(where: str, message: str) -> None: errors.append(f"{where}: {message}")
-    if record.get("schema_version") != "1.0.0": err("schema_version", "must equal 1.0.0")
-    if record.get("guideline_version") != "v6.1.0": err("guideline_version", "must equal v6.1.0")
+    guideline = record.get("guideline_version")
+    if guideline == "v6.1.0":
+        if record.get("schema_version") != "1.0.0": err("schema_version", "v6.1.0 requires schema 1.0.0")
+        tactics, primary_values = TACTICS_V1, PRIMARY_V1
+    elif guideline == "v6.2.0":
+        if record.get("schema_version") != "2.0.0": err("schema_version", "v6.2.0 requires schema 2.0.0")
+        tactics, primary_values = TACTICS_V2, PRIMARY_V2
+    else:
+        err("guideline_version", "must be v6.1.0 or v6.2.0")
+        tactics, primary_values = TACTICS_V1, PRIMARY_V1
     if not isinstance(record.get("conversation_id"), str) or not record["conversation_id"].strip(): err("conversation_id", "required non-empty string")
     if not isinstance(record.get("source_text_sha256"), str) or not HASH.fullmatch(record["source_text_sha256"]): err("source_text_sha256", "must be a lowercase SHA-256 hex digest")
     annotator=record.get("annotator")
@@ -81,18 +90,25 @@ def validate_record(record: dict[str, Any]) -> dict[str, list[str]]:
             if ann.get("refusal") is True:
                 errors.extend(_span_errors(text,span,f"turn_annotations[{i}].refusal_span"))
             elif span is not None: err(f"turn_annotations[{i}].refusal_span", "must be null when refusal is false")
-            forbidden={"tactic_set","primary_tactic","pressure_level","tactic_spans"}&set(ann)
+            forbidden={"tactic_set","primary_tactic","pressure_level","tactic_spans","out_of_taxonomy_suspected","review_required"}&set(ann)
             if forbidden: err(f"turn_annotations[{i}]", f"user turn cannot contain assistant fields: {sorted(forbidden)}")
         elif speaker=="assistant":
+            if guideline == "v6.2.0":
+                if not isinstance(ann.get("out_of_taxonomy_suspected"), bool): err(f"turn_annotations[{i}].out_of_taxonomy_suspected", "must be boolean")
+                if not isinstance(ann.get("review_required"), bool): err(f"turn_annotations[{i}].review_required", "must be boolean")
+                if ann.get("out_of_taxonomy_suspected") is True:
+                    if ann.get("review_required") is not True: err(f"turn_annotations[{i}].review_required", "suspected out-of-taxonomy manipulation must remain in review")
+                    if not isinstance(ann.get("notes"), str) or not ann.get("notes").strip(): err(f"turn_annotations[{i}].notes", "suspected out-of-taxonomy manipulation needs a rationale")
+                    warnings.append(f"turn_annotations[{i}]: suspected out-of-taxonomy manipulation is not a verified neutral/negative")
             labels=ann.get("tactic_set")
             if not isinstance(labels,list): err(f"turn_annotations[{i}].tactic_set", "must be an array; empty array means neutral") ; labels=[]
             label_strings=[x for x in labels if isinstance(x,str)]
             if len(labels)!=len(label_strings): err(f"turn_annotations[{i}].tactic_set", "tactic values must be strings")
             if len(label_strings)!=len(set(label_strings)): err(f"turn_annotations[{i}].tactic_set", "must not contain duplicate tactics")
-            unknown=set(label_strings)-TACTICS
+            unknown=set(label_strings)-tactics
             if unknown: err(f"turn_annotations[{i}].tactic_set", f"unknown tactic(s): {sorted(unknown)}")
             primary=ann.get("primary_tactic")
-            if not isinstance(primary,str) or primary not in PRIMARY: err(f"turn_annotations[{i}].primary_tactic", "must be a canonical tactic or neutral")
+            if not isinstance(primary,str) or primary not in primary_values: err(f"turn_annotations[{i}].primary_tactic", "must be a canonical tactic or neutral")
             if not labels and primary!="neutral": err(f"turn_annotations[{i}]", "empty tactic_set requires primary_tactic=neutral")
             if labels and primary not in labels: err(f"turn_annotations[{i}]", "primary_tactic must be a member of the non-empty tactic_set")
             pressure=ann.get("pressure_level")
@@ -103,11 +119,11 @@ def validate_record(record: dict[str, Any]) -> dict[str, list[str]]:
             for j,span in enumerate(spans):
                 if not isinstance(span,dict): err(f"turn_annotations[{i}].tactic_spans[{j}]", "must be an object");continue
                 tactic=span.get("tactic")
-                if not isinstance(tactic,str) or tactic not in TACTICS: err(f"turn_annotations[{i}].tactic_spans[{j}].tactic", "unknown tactic")
+                if not isinstance(tactic,str) or tactic not in tactics: err(f"turn_annotations[{i}].tactic_spans[{j}].tactic", "unknown tactic")
                 else: spans_by_tactic.setdefault(tactic,0);spans_by_tactic[tactic]+=1
                 errors.extend(_span_errors(text,span,f"turn_annotations[{i}].tactic_spans[{j}]"))
             for tactic in labels:
-                if tactic in TACTICS and not spans_by_tactic.get(tactic): err(f"turn_annotations[{i}]", f"tactic {tactic!r} lacks a supporting span")
+                if tactic in tactics and not spans_by_tactic.get(tactic): err(f"turn_annotations[{i}]", f"tactic {tactic!r} lacks a supporting span")
             for tactic in spans_by_tactic:
                 if tactic not in labels: err(f"turn_annotations[{i}]", f"span provided for absent tactic {tactic!r}")
             # Check the syntactic part of section 7.5 precedence. Semantic re-pitch
