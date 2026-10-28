@@ -18,7 +18,7 @@ The ratified protocol and active workflow are maintained on separate branches:
 - [Protocol schema and validator](https://github.com/saifmht19/Mind-Mirror-1/tree/v6-protocol-freeze/annotation)
 - [Claude/Gemini contributor workflow](https://github.com/saifmht19/Mind-Mirror-1/tree/v6-annotation-contributors/contributor_annotation)
 - [Repository cleanup inventory](docs/REPOSITORY_CLEANUP.md)
-- [v6 multi-label research specification](docs/spec_v6_multilabel.md)
+- [v6 multi-label research specification](https://github.com/saifmht19/Mind-Mirror-1/blob/v6-protocol-freeze/docs/spec_v6_multilabel.md)
 
 Do not edit or infer approval from an old schema or from a successful structural validation. Historical protocol versions and adjudicated records are retained for provenance.
 
