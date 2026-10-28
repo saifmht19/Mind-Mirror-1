@@ -74,3 +74,8 @@ Gemini contributor replaces `claude` with `gemini`. If rebasing conflicts, stop 
 ## Limits
 
 The AI-assisted labels are **silver-standard candidates**, not human gold-standard data. Scenario-grouping and final train/test split decisions remain with the research lead. This branch should never be used to claim confirmatory model performance.
+
+
+## Current readiness gate
+
+See [`READINESS_BLOCKERS.md`](READINESS_BLOCKERS.md) before generating or sharing batches. Track A's versioned protocol is frozen as v6.1.0, but two operational decisions are still awaiting research-lead ratification, so the 780-record run is blocked. The exact cleaned corpus and frozen pilot are not present in this branch. Do not use the legacy `annotation/pilot_dataset.json` as a substitute. After the lead supplies the canonical files and authorizes provider sharing, run `prepare_batches.py` and then `validate_batches.py`; the exact same batch files and manifest must be used by Claude and Gemini.

@@ -1,72 +1,148 @@
 #!/usr/bin/env python3
-"""Make deterministic, blinded contributor batches; no APIs and no data mutation."""
+"""Prepare deterministic, blinded MindMirror v6 annotation input batches.
+
+The cleaned source and pilot must be supplied by the project lead. This script
+does not infer pilot membership or copy source metadata into contributor inputs.
+"""
+from __future__ import annotations
+
 import argparse
 import hashlib
 import json
 from pathlib import Path
+from typing import Any
 
-def read_jsonl(path):
-    items = []
-    for n, line in enumerate(path.read_text(encoding="utf-8-sig").splitlines(), 1):
-        if line.strip():
+PROTOCOL_VERSION = "v6.1.0"
+PROTOCOL_COMMIT = "4e8d652e0692e183ba6946fea966f4bdafd5afb4"
+EXPECTED_TOTAL = 800
+EXPECTED_PILOT = 20
+EXPECTED_ANNOTATE = EXPECTED_TOTAL - EXPECTED_PILOT
+
+
+def sha256(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def read_records(path: Path) -> list[dict[str, Any]]:
+    raw = path.read_text(encoding="utf-8-sig")
+    if path.suffix.lower() == ".json":
+        parsed = json.loads(raw)
+        if not isinstance(parsed, list):
+            raise ValueError(f"{path}: expected a JSON array")
+        values = parsed
+    else:
+        values = []
+        for number, line in enumerate(raw.splitlines(), 1):
+            if not line.strip():
+                continue
             try:
-                items.append(json.loads(line))
+                values.append(json.loads(line))
             except json.JSONDecodeError as exc:
-                raise SystemExit(f"{path}:{n}: invalid JSON: {exc}")
-    return items
+                raise ValueError(f"{path}:{number}: invalid JSON: {exc}") from exc
+    if any(not isinstance(value, dict) for value in values):
+        raise ValueError(f"{path}: every record must be a JSON object")
+    return values
 
-def main():
-    p = argparse.ArgumentParser()
-    p.add_argument("--dataset", required=True, type=Path)
-    p.add_argument("--pilot", required=True, type=Path)
-    p.add_argument("--out", required=True, type=Path)
-    p.add_argument("--batch-size", type=int, default=40)
-    args = p.parse_args()
-    if args.batch_size < 1 or args.batch_size > 50:
-        p.error("--batch-size must be 1..50")
-    data, pilot = read_jsonl(args.dataset), read_jsonl(args.pilot)
-    ids = [x.get("conversation_id") for x in data]
-    excluded = [x.get("conversation_id") for x in pilot]
-    if len(data) != 800 or len(pilot) != 20:
-        raise SystemExit(f"Expected 800 dataset and 20 pilot; got {len(data)} and {len(pilot)}")
-    if len(ids) != len(set(ids)) or len(excluded) != len(set(excluded)) or not set(excluded) <= set(ids):
-        raise SystemExit("Duplicate IDs or pilot IDs not contained in the dataset")
-    selected = [x for x in data if x["conversation_id"] not in set(excluded)]
-    if len(selected) != 780:
-        raise SystemExit(f"Expected 780 nonpilot records, got {len(selected)}")
-    # Strict blinding: user-visible textual turns only; strip annotation and generator fields.
-    clean = []
-    for x in selected:
-        if not isinstance(x.get("turns"), list):
-            raise SystemExit(f"No list of turns for {x['conversation_id']}")
-        turns = []
-        for i, t in enumerate(x["turns"]):
-            speaker = t.get("speaker", t.get("role"))
-            msg = t.get("text", t.get("content"))
-            if speaker not in ("assistant", "user") or not isinstance(msg, str):
-                raise SystemExit(f"Nonstandard turn in {x['conversation_id']} index {i}; inspect schema before batching")
-            turns.append({"turn_index": t.get("turn_index", i), "speaker": speaker, "text": msg,
-                "user_refusal": {"refusal": None,"span_start": None,"span_end": None,"notes": ""} if speaker=="user" else None,
-                "assistant_annotation": {"tactic_set": None,"primary_tactic": None,"pressure_level_0_3": None,"tactic_spans": [],"notes": ""} if speaker=="assistant" else None})
-        clean.append({"conversation_id": x["conversation_id"],"domain": x.get("domain"),"turns": turns,
-            "conversation_annotation": {"escalating": None,"onset_turn_index": None,
-                "honest_persistence": None,"adjudication_required": None,"annotator_id": "","notes": ""}})
-    args.out.mkdir(parents=True, exist_ok=True)
-    manifest = {"source_dataset_sha256": hashlib.sha256(args.dataset.read_bytes()).hexdigest(),
-        "pilot_sha256": hashlib.sha256(args.pilot.read_bytes()).hexdigest(),
-        "total_dataset": 800, "pilot_excluded": 20, "to_annotate": 780,
-        "batch_size": args.batch_size,"batches": []}
-    for pos in range(0, len(clean), args.batch_size):
-        subset = clean[pos:pos+args.batch_size]
-        name = f"batch_{pos//args.batch_size + 1:03d}.jsonl"
-        body = "".join(json.dumps(v, ensure_ascii=False) + "\n" for v in subset)
-        (args.out/name).write_text(body, encoding="utf-8")
-        manifest["batches"].append({"filename": name,"count": len(subset),
-            "conversation_ids": [v["conversation_id"] for v in subset],
-            "sha256": hashlib.sha256(body.encode("utf-8")).hexdigest()})
-    (args.out/"manifest.json").write_text(json.dumps(manifest, indent=2)+"\n", encoding="utf-8")
-    print(f"Prepared 780 nonpilot conversations in {len(manifest['batches'])} batches at {args.out}")
-    print("IMPORTANT: verify compatibility with Track A's final schema before annotating.")
+
+def conversation_id(record: dict[str, Any]) -> str:
+    value = record.get("conversation_id")
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError("every source and pilot record needs a non-empty conversation_id")
+    return value
+
+
+def blind_record(source: dict[str, Any]) -> dict[str, Any]:
+    turns_in = source.get("turns")
+    if not isinstance(turns_in, list) or not turns_in:
+        raise ValueError(f"{conversation_id(source)}: turns must be a non-empty list")
+    turns = []
+    for index, original in enumerate(turns_in):
+        if not isinstance(original, dict):
+            raise ValueError(f"{conversation_id(source)} turn {index}: expected object")
+        speaker = original.get("speaker", original.get("role"))
+        text = original.get("text", original.get("content"))
+        if speaker not in {"user", "assistant"} or not isinstance(text, str) or not text.strip():
+            raise ValueError(f"{conversation_id(source)} turn {index}: invalid speaker or text")
+        if "turn_index" in original and original["turn_index"] != index:
+            raise ValueError(f"{conversation_id(source)} turn {index}: non-canonical turn_index")
+        turns.append({"turn_index": index, "speaker": speaker, "text": text})
+    domain = source.get("domain")
+    if not isinstance(domain, str) or not domain.strip():
+        raise ValueError(f"{conversation_id(source)}: domain must be present for stratified review")
+    # Deliberately whitelist only fields visible to either independent annotator.
+    return {"conversation_id": conversation_id(source), "domain": domain, "turns": turns}
+
+
+def load_pilot_ids(path: Path) -> set[str]:
+    records = read_records(path)
+    ids = [conversation_id(record) for record in records]
+    if len(ids) != EXPECTED_PILOT or len(set(ids)) != EXPECTED_PILOT:
+        raise ValueError(f"pilot must contain exactly 20 unique conversation IDs; found {len(ids)} records")
+    return set(ids)
+
+
+def prepare(dataset_path: Path, pilot_path: Path, out_dir: Path, batch_size: int) -> dict[str, Any]:
+    if not 1 <= batch_size <= 50:
+        raise ValueError("batch_size must be between 1 and 50")
+    data = read_records(dataset_path)
+    pilot_ids = load_pilot_ids(pilot_path)
+    if len(data) != EXPECTED_TOTAL:
+        raise ValueError(f"expected 800 cleaned source records; found {len(data)}")
+    ids = [conversation_id(record) for record in data]
+    if len(set(ids)) != EXPECTED_TOTAL:
+        raise ValueError("cleaned source must contain 800 unique conversation IDs")
+    absent = pilot_ids - set(ids)
+    if absent:
+        raise ValueError(f"pilot IDs are not in cleaned source: {sorted(absent)}")
+    selected = [blind_record(record) for record in data if conversation_id(record) not in pilot_ids]
+    if len(selected) != EXPECTED_ANNOTATE:
+        raise ValueError(f"expected 780 non-pilot records; found {len(selected)}")
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    manifest: dict[str, Any] = {
+        "format_version": "mindmirror-v6-blinded-input-1.0.0",
+        "protocol_version": PROTOCOL_VERSION,
+        "protocol_commit_sha": PROTOCOL_COMMIT,
+        "protocol_readiness": "blocked_for_large_scale_pending_human_ratification",
+        "source_dataset_sha256": sha256(dataset_path.read_bytes()),
+        "pilot_sha256": sha256(pilot_path.read_bytes()),
+        "total_dataset": EXPECTED_TOTAL,
+        "pilot_excluded": EXPECTED_PILOT,
+        "to_annotate": EXPECTED_ANNOTATE,
+        "batch_size": batch_size,
+        "batches": [],
+    }
+    for start in range(0, len(selected), batch_size):
+        subset = selected[start : start + batch_size]
+        name = f"batch_{start // batch_size + 1:03d}.jsonl"
+        body = "".join(json.dumps(item, ensure_ascii=False, separators=(",", ":")) + "\n" for item in subset)
+        (out_dir / name).write_text(body, encoding="utf-8", newline="\n")
+        manifest["batches"].append({
+            "filename": name,
+            "count": len(subset),
+            "conversation_ids": [item["conversation_id"] for item in subset],
+            "sha256": sha256(body.encode("utf-8")),
+        })
+    (out_dir / "manifest.json").write_text(
+        json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n"
+    )
+    return manifest
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--dataset", required=True, type=Path, help="cleaned 800-record JSONL")
+    parser.add_argument("--pilot", required=True, type=Path, help="frozen 20-record pilot JSON or JSONL")
+    parser.add_argument("--out", required=True, type=Path)
+    parser.add_argument("--batch-size", type=int, default=40)
+    args = parser.parse_args()
+    try:
+        manifest = prepare(args.dataset, args.pilot, args.out, args.batch_size)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        parser.error(str(exc))
+    print(f"Prepared {manifest['to_annotate']} blinded non-pilot records in {len(manifest['batches'])} deterministic batches")
+    print(f"Protocol {manifest['protocol_version']} ({manifest['protocol_commit_sha']}); status: {manifest['protocol_readiness']}")
+
 
 if __name__ == "__main__":
     main()
