@@ -44,7 +44,7 @@ class ContributorBatchTests(unittest.TestCase):
         manifest = prepare(self.source, self.pilot, out, batch_size=40)
         self.assertEqual(manifest["to_annotate"], 780)
         self.assertEqual(len(manifest["batches"]), 20)
-        self.assertEqual(validate(out), {"batches": 20, "records": 780})
+        self.assertEqual(validate(out, self.source, self.pilot), {"batches": 20, "records": 780})
         first = json.loads((out / "batch_001.jsonl").read_text(encoding="utf-8").splitlines()[0])
         self.assertEqual(set(first), {"conversation_id", "domain", "turns"})
         self.assertEqual(first["conversation_id"], "C-020")
@@ -64,13 +64,26 @@ class ContributorBatchTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "exactly 20"):
             prepare(self.source, self.pilot, self.root / "out", 40)
 
+    def test_rejects_text_change_even_if_batch_hash_is_recomputed(self):
+        out = self.root / "batches"
+        manifest = prepare(self.source, self.pilot, out, 40)
+        path = out / "batch_001.jsonl"
+        rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+        rows[0]["turns"][0]["text"] = "silently changed"
+        body = "".join(json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\n" for row in rows)
+        path.write_text(body, encoding="utf-8")
+        manifest["batches"][0]["sha256"] = __import__("hashlib").sha256(body.encode("utf-8")).hexdigest()
+        (out / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "differs from source projection"):
+            validate(out, self.source, self.pilot)
+
     def test_detects_batch_tampering(self):
         out = self.root / "batches"
         prepare(self.source, self.pilot, out, 40)
         path = out / "batch_001.jsonl"
         path.write_text(path.read_text(encoding="utf-8").replace("Question 20?", "changed"), encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "SHA-256 mismatch"):
-            validate(out)
+            validate(out, self.source, self.pilot)
 
 
 if __name__ == "__main__":

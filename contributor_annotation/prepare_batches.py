@@ -12,8 +12,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-PROTOCOL_VERSION = "v6.1.0"
-PROTOCOL_COMMIT = "4e8d652e0692e183ba6946fea966f4bdafd5afb4"
+PROTOCOL_VERSION = "v6.2.0"
+PROTOCOL_COMMIT = "afe1f584b8867fa65c8c2e791d4cbc83f915f04f"
 EXPECTED_TOTAL = 800
 EXPECTED_PILOT = 20
 EXPECTED_ANNOTATE = EXPECTED_TOTAL - EXPECTED_PILOT
@@ -103,7 +103,7 @@ def prepare(dataset_path: Path, pilot_path: Path, out_dir: Path, batch_size: int
         "format_version": "mindmirror-v6-blinded-input-1.0.0",
         "protocol_version": PROTOCOL_VERSION,
         "protocol_commit_sha": PROTOCOL_COMMIT,
-        "protocol_readiness": "blocked_for_large_scale_pending_human_ratification",
+        "protocol_readiness": "pending_research_lead_ratification",
         "source_dataset_sha256": sha256(dataset_path.read_bytes()),
         "pilot_sha256": sha256(pilot_path.read_bytes()),
         "total_dataset": EXPECTED_TOTAL,

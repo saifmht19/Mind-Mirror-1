@@ -24,7 +24,8 @@ Do not upload private, unlicensed, or restricted data to third-party AI provider
 git fetch origin
 git switch v6-annotation-contributors
 git pull --ff-only origin v6-annotation-contributors
-python contributor_annotation/prepare_batches.py --dataset data/conversations/processed/master_cleaned.jsonl --pilot PATH_TO_FROZEN_PILOT.jsonl --out contributor_annotation/inputs --batch-size 40
+python contributor_annotation/prepare_batches.py --dataset data/conversations/processed/master_cleaned.jsonl --pilot data/conversations/derived/v6_audit/annotation_pilot_20.jsonl --out PATH_TO_PRIVATE_BATCH_DIRECTORY --batch-size 40
+python contributor_annotation/validate_batches.py PATH_TO_PRIVATE_BATCH_DIRECTORY --dataset data/conversations/processed/master_cleaned.jsonl --pilot data/conversations/derived/v6_audit/annotation_pilot_20.jsonl
 ```
 
 The script creates a stable 780-ID manifest and small JSONL batches, but stops if counts, IDs, or exclusions fail. Review the generated manifest before sharing batches. Upload the *same batch files* to each model independently.
