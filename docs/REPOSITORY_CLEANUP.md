@@ -30,6 +30,110 @@ The compared commit lists and changed paths are exact for this snapshot. A commi
 
 For full per-commit messages and diffs, use the branch comparison links, such as [all branches](https://github.com/saifmht19/Mind-Mirror-1/branches) and [compare main to the contributor branch](https://github.com/saifmht19/Mind-Mirror-1/compare/main...v6-annotation-contributors). Compare output represents file changes from a merge base; it is not a literal current-tree file listing.
 
+## Full branch-only commit inventory
+
+The entries below are the complete commit lists returned by `main...<branch>` for all 11 non-main refs at the baseline above. Repeated SHAs are shared between branches; they are branch-only relative to main but not unique across the historical refs. Full SHAs and subjects are recorded to retain provenance.
+
+### `v5-demo-model`
+
+- [`22c3a00a1ada8404f53b72fffd1c4bace037a630`](https://github.com/saifmht19/Mind-Mirror-1/commit/22c3a00a1ada8404f53b72fffd1c4bace037a630) — feat(step1): stricter refusal detector, paired diagnostic suite, reproducible baseline
+- [`eb090cc344cad5e4ca95cd81ba37e74fde1f10bf`](https://github.com/saifmht19/Mind-Mirror-1/commit/eb090cc344cad5e4ca95cd81ba37e74fde1f10bf) — feat(step2): paired-data generator, blind two-reviewer sheet, opt-in mapping v2
+- [`10fc735ad61d03f1a73cb0f0d4c1c1e9d62fe289`](https://github.com/saifmht19/Mind-Mirror-1/commit/10fc735ad61d03f1a73cb0f0d4c1c1e9d62fe289) — Add demo model, escalation scorer, pair/tactic banks, demo UI and tests
+
+### `v5-paper-skeleton`
+
+- [`22c3a00a1ada8404f53b72fffd1c4bace037a630`](https://github.com/saifmht19/Mind-Mirror-1/commit/22c3a00a1ada8404f53b72fffd1c4bace037a630) — feat(step1): stricter refusal detector, paired diagnostic suite, reproducible baseline
+- [`eb090cc344cad5e4ca95cd81ba37e74fde1f10bf`](https://github.com/saifmht19/Mind-Mirror-1/commit/eb090cc344cad5e4ca95cd81ba37e74fde1f10bf) — feat(step2): paired-data generator, blind two-reviewer sheet, opt-in mapping v2
+- [`c2a19c3f02d8fcf43cacb02c310c649d945afc04`](https://github.com/saifmht19/Mind-Mirror-1/commit/c2a19c3f02d8fcf43cacb02c310c649d945afc04) — docs(paper): add verified bibliography for related work
+
+### `v5-step1-honest-persistence`
+
+- [`22c3a00a1ada8404f53b72fffd1c4bace037a630`](https://github.com/saifmht19/Mind-Mirror-1/commit/22c3a00a1ada8404f53b72fffd1c4bace037a630) — feat(step1): stricter refusal detector, paired diagnostic suite, reproducible baseline
+
+### `v5-step2-paired-data`
+
+- [`22c3a00a1ada8404f53b72fffd1c4bace037a630`](https://github.com/saifmht19/Mind-Mirror-1/commit/22c3a00a1ada8404f53b72fffd1c4bace037a630) — feat(step1): stricter refusal detector, paired diagnostic suite, reproducible baseline
+- [`eb090cc344cad5e4ca95cd81ba37e74fde1f10bf`](https://github.com/saifmht19/Mind-Mirror-1/commit/eb090cc344cad5e4ca95cd81ba37e74fde1f10bf) — feat(step2): paired-data generator, blind two-reviewer sheet, opt-in mapping v2
+
+### `v6-annotation-contributors`
+
+- [`22c3a00a1ada8404f53b72fffd1c4bace037a630`](https://github.com/saifmht19/Mind-Mirror-1/commit/22c3a00a1ada8404f53b72fffd1c4bace037a630) — feat(step1): stricter refusal detector, paired diagnostic suite, reproducible baseline
+- [`eb090cc344cad5e4ca95cd81ba37e74fde1f10bf`](https://github.com/saifmht19/Mind-Mirror-1/commit/eb090cc344cad5e4ca95cd81ba37e74fde1f10bf) — feat(step2): paired-data generator, blind two-reviewer sheet, opt-in mapping v2
+- [`10fc735ad61d03f1a73cb0f0d4c1c1e9d62fe289`](https://github.com/saifmht19/Mind-Mirror-1/commit/10fc735ad61d03f1a73cb0f0d4c1c1e9d62fe289) — Add demo model, escalation scorer, pair/tactic banks, demo UI and tests
+- [`a55c153031245dc516dc90616ec875085722f855`](https://github.com/saifmht19/Mind-Mirror-1/commit/a55c153031245dc516dc90616ec875085722f855) — Add spec v6: multi-label tactics (tactic set plus primary tactic)
+- [`2ca70fd541fb2084dc5891c7afbbaab8c6684353`](https://github.com/saifmht19/Mind-Mirror-1/commit/2ca70fd541fb2084dc5891c7afbbaab8c6684353) — Add scenario-card builder and 800 draft cards for full-conversation dataset
+- [`7751f09e5e6d3c7dd31bdea8a6018adc0379bc2f`](https://github.com/saifmht19/Mind-Mirror-1/commit/7751f09e5e6d3c7dd31bdea8a6018adc0379bc2f) — Add DISMISSING_CHOICE tactic and v6 multi-label fields to schema
+- [`72c9c05ef75f53b2a71f9c3a72eb3c22bb712acd`](https://github.com/saifmht19/Mind-Mirror-1/commit/72c9c05ef75f53b2a71f9c3a72eb3c22bb712acd) — Add AI-companion pilot batch, Ollama runner, and fix bare-no refusal detection
+- [`4611c330daffe5a60742b91122d499e1345f2d7c`](https://github.com/saifmht19/Mind-Mirror-1/commit/4611c330daffe5a60742b91122d499e1345f2d7c) — Add make_prompts.py: paste-ready web-chat prompts for conversation generation
+- [`27ea74c856c4f6483e35fc7f9bdc48f941828a8f`](https://github.com/saifmht19/Mind-Mirror-1/commit/27ea74c856c4f6483e35fc7f9bdc48f941828a8f) — docs(annotation): add contributor resource README.md
+- [`1404d80c0623383ef456f442cfe992e7b5782c91`](https://github.com/saifmht19/Mind-Mirror-1/commit/1404d80c0623383ef456f442cfe992e7b5782c91) — docs(annotation): add contributor resource CLAUDE_PROMPT.md
+- [`345963996821766d46bc3fa57fc4bd8906e59fa5`](https://github.com/saifmht19/Mind-Mirror-1/commit/345963996821766d46bc3fa57fc4bd8906e59fa5) — docs(annotation): add contributor resource GEMINI_PROMPT.md
+- [`1fe3bcf522b3bf5dcc2c702871a430d85c3bc20c`](https://github.com/saifmht19/Mind-Mirror-1/commit/1fe3bcf522b3bf5dcc2c702871a430d85c3bc20c) — docs(annotation): add contributor resource prepare_batches.py
+- [`636211ea78786d029d19e7ffc9298988516984ec`](https://github.com/saifmht19/Mind-Mirror-1/commit/636211ea78786d029d19e7ffc9298988516984ec) — test(annotation): validate contributor batch structure and evidence offsets
+- [`1cae0944078181e19c546267c3ea04b12d33a12e`](https://github.com/saifmht19/Mind-Mirror-1/commit/1cae0944078181e19c546267c3ea04b12d33a12e) — fix(annotation): enforce primary tactic membership
+- [`e36ab8bb8b471285d719c780c6263ede45422024`](https://github.com/saifmht19/Mind-Mirror-1/commit/e36ab8bb8b471285d719c780c6263ede45422024) — prep(annotation): gate contributor batches on protocol and data readiness
+- [`b2d03cd3658c4bfde56acb7c6b6edfeacdc6e3c8`](https://github.com/saifmht19/Mind-Mirror-1/commit/b2d03cd3658c4bfde56acb7c6b6edfeacdc6e3c8) — feat(annotation): align contributor batches to v6.2 proposal
+- [`1d4642795c4a8da732c5f30ff98b89852f11ec25`](https://github.com/saifmht19/Mind-Mirror-1/commit/1d4642795c4a8da732c5f30ff98b89852f11ec25) — docs(annotation): publish sanitized private-batch manifest
+- [`5cc63acd964482a70465cdb4df3c4aee834da7f2`](https://github.com/saifmht19/Mind-Mirror-1/commit/5cc63acd964482a70465cdb4df3c4aee834da7f2) — feat(annotation): prepare gated v6.2 contributor handoff
+- [`148e33decd32e663956e6afdcdc8cb4c455687b1`](https://github.com/saifmht19/Mind-Mirror-1/commit/148e33decd32e663956e6afdcdc8cb4c455687b1) — docs(annotation): fix validator handoff path
+- [`f0e308dce48819f7ce0d10d27ebbbd02c06873d2`](https://github.com/saifmht19/Mind-Mirror-1/commit/f0e308dce48819f7ce0d10d27ebbbd02c06873d2) — test(annotation): align dummy fixture with v6.2 validator
+- [`59b15f4c2f1504ec5316f9e370577bbd17e0b393`](https://github.com/saifmht19/Mind-Mirror-1/commit/59b15f4c2f1504ec5316f9e370577bbd17e0b393) — fix(annotation): canonicalize v6 source hash recipe
+- [`436db1cbb47ad3580fac3b51dfd4739547cfdaa6`](https://github.com/saifmht19/Mind-Mirror-1/commit/436db1cbb47ad3580fac3b51dfd4739547cfdaa6) — docs(annotation): sync corrected v6.2 contributor contract
+- [`2f127f11122aae765fc408e477c5a61a82a3e943`](https://github.com/saifmht19/Mind-Mirror-1/commit/2f127f11122aae765fc408e477c5a61a82a3e943) — docs: synchronize contributor handoff with v6.2.0 ratification
+- [`ee577347d1d4ce92cd1cda911ec53632c69a8653`](https://github.com/saifmht19/Mind-Mirror-1/commit/ee577347d1d4ce92cd1cda911ec53632c69a8653) — docs: synchronize contributor handoff with v6.2.0 ratification
+- [`1a120aac44c63ed2249ef0b9424caf210d43ca12`](https://github.com/saifmht19/Mind-Mirror-1/commit/1a120aac44c63ed2249ef0b9424caf210d43ca12) — docs: record scoped Claude/Gemini private annotation sharing approval
+- [`fb0d82625e0a861812983066f0a0b968046e99a1`](https://github.com/saifmht19/Mind-Mirror-1/commit/fb0d82625e0a861812983066f0a0b968046e99a1) — docs: record scoped Claude/Gemini private annotation sharing approval
+- [`ceed3745dea508cc57963c5f5d272425c23d8fa1`](https://github.com/saifmht19/Mind-Mirror-1/commit/ceed3745dea508cc57963c5f5d272425c23d8fa1) — docs: correct ratification status and safeguard Claude annotation workflow
+- [`a3b9bbeb08b2e033035b54f6bd597a39f8dc4d80`](https://github.com/saifmht19/Mind-Mirror-1/commit/a3b9bbeb08b2e033035b54f6bd597a39f8dc4d80) — docs: correct ratification status and safeguard Gemini annotation workflow
+- [`86e07289136d2e347a25ecb2e5bc4d44073e545b`](https://github.com/saifmht19/Mind-Mirror-1/commit/86e07289136d2e347a25ecb2e5bc4d44073e545b) — feat: add deterministic v6.2 annotation postprocessing pipeline
+- [`db6f16e99144d9bfc67f1a3359f5f32d5a21a5e8`](https://github.com/saifmht19/Mind-Mirror-1/commit/db6f16e99144d9bfc67f1a3359f5f32d5a21a5e8) — docs: flag stale contributor protocol copies
+- [`b05dcb68d450646b7b18b75ddd942e87e0fee612`](https://github.com/saifmht19/Mind-Mirror-1/commit/b05dcb68d450646b7b18b75ddd942e87e0fee612) — docs: reconcile v6.2 ratification status and provenance
+
+### `v6-evaluation-prep`
+
+- [`a3a58d0c942aeee290bf6b0795c7d69cc0d4cc14`](https://github.com/saifmht19/Mind-Mirror-1/commit/a3a58d0c942aeee290bf6b0795c7d69cc0d4cc14) — feat: add v6 evaluation preparation pipeline
+- [`faf3c5a3887e191b5bb1ee599820b2e86d8dd85e`](https://github.com/saifmht19/Mind-Mirror-1/commit/faf3c5a3887e191b5bb1ee599820b2e86d8dd85e) — fix: align evaluation adapter with v6 annotation contract
+
+### `v6-multilabel-plan`
+
+- [`22c3a00a1ada8404f53b72fffd1c4bace037a630`](https://github.com/saifmht19/Mind-Mirror-1/commit/22c3a00a1ada8404f53b72fffd1c4bace037a630) — feat(step1): stricter refusal detector, paired diagnostic suite, reproducible baseline
+- [`eb090cc344cad5e4ca95cd81ba37e74fde1f10bf`](https://github.com/saifmht19/Mind-Mirror-1/commit/eb090cc344cad5e4ca95cd81ba37e74fde1f10bf) — feat(step2): paired-data generator, blind two-reviewer sheet, opt-in mapping v2
+- [`10fc735ad61d03f1a73cb0f0d4c1c1e9d62fe289`](https://github.com/saifmht19/Mind-Mirror-1/commit/10fc735ad61d03f1a73cb0f0d4c1c1e9d62fe289) — Add demo model, escalation scorer, pair/tactic banks, demo UI and tests
+- [`a55c153031245dc516dc90616ec875085722f855`](https://github.com/saifmht19/Mind-Mirror-1/commit/a55c153031245dc516dc90616ec875085722f855) — Add spec v6: multi-label tactics (tactic set plus primary tactic)
+
+### `v6-protocol-freeze`
+
+- [`aae3a78bd8f5318a6338f1f53779bf025acd43f1`](https://github.com/saifmht19/Mind-Mirror-1/commit/aae3a78bd8f5318a6338f1f53779bf025acd43f1) — feat: freeze v6 annotation protocol and validators
+- [`4e8d652e0692e183ba6946fea966f4bdafd5afb4`](https://github.com/saifmht19/Mind-Mirror-1/commit/4e8d652e0692e183ba6946fea966f4bdafd5afb4) — docs: include canonical v6 spec for protocol validation
+- [`afe1f584b8867fa65c8c2e791d4cbc83f915f04f`](https://github.com/saifmht19/Mind-Mirror-1/commit/afe1f584b8867fa65c8c2e791d4cbc83f915f04f) — feat(annotation): propose v6.2 protocol and schema pending ratification
+- [`2ba3414fd1f53eb014e84745a3d8b5a841fc7902`](https://github.com/saifmht19/Mind-Mirror-1/commit/2ba3414fd1f53eb014e84745a3d8b5a841fc7902) — fix(protocol): align v6.2 schema and validator contract
+- [`3a6f13b2bdbbf63a9d03f39d5744e0a775ae4c25`](https://github.com/saifmht19/Mind-Mirror-1/commit/3a6f13b2bdbbf63a9d03f39d5744e0a775ae4c25) — docs: record explicit research-lead v6.2.0 ratification and provider-sharing gate
+- [`71cbc4600e7b6eda7bec637a921bda32326d572c`](https://github.com/saifmht19/Mind-Mirror-1/commit/71cbc4600e7b6eda7bec637a921bda32326d572c) — docs: mark v6.2.0 protocol ratified with separate provider sharing gate
+
+### `v6-scenario-cards`
+
+- [`22c3a00a1ada8404f53b72fffd1c4bace037a630`](https://github.com/saifmht19/Mind-Mirror-1/commit/22c3a00a1ada8404f53b72fffd1c4bace037a630) — feat(step1): stricter refusal detector, paired diagnostic suite, reproducible baseline
+- [`eb090cc344cad5e4ca95cd81ba37e74fde1f10bf`](https://github.com/saifmht19/Mind-Mirror-1/commit/eb090cc344cad5e4ca95cd81ba37e74fde1f10bf) — feat(step2): paired-data generator, blind two-reviewer sheet, opt-in mapping v2
+- [`10fc735ad61d03f1a73cb0f0d4c1c1e9d62fe289`](https://github.com/saifmht19/Mind-Mirror-1/commit/10fc735ad61d03f1a73cb0f0d4c1c1e9d62fe289) — Add demo model, escalation scorer, pair/tactic banks, demo UI and tests
+- [`a55c153031245dc516dc90616ec875085722f855`](https://github.com/saifmht19/Mind-Mirror-1/commit/a55c153031245dc516dc90616ec875085722f855) — Add spec v6: multi-label tactics (tactic set plus primary tactic)
+- [`2ca70fd541fb2084dc5891c7afbbaab8c6684353`](https://github.com/saifmht19/Mind-Mirror-1/commit/2ca70fd541fb2084dc5891c7afbbaab8c6684353) — Add scenario-card builder and 800 draft cards for full-conversation dataset
+
+### `v6-scenario-grouping`
+
+- [`871b3e5d5e52f60372332be17ca237c6032f81c9`](https://github.com/saifmht19/Mind-Mirror-1/commit/871b3e5d5e52f60372332be17ca237c6032f81c9) — feat: add scenario review and leakage-safe split tools
+- [`699711eb88f14f74f7e012e82b638791b116e322`](https://github.com/saifmht19/Mind-Mirror-1/commit/699711eb88f14f74f7e012e82b638791b116e322) — style: clean scenario grouping files
+
+### `v6-schema-dismissing-choice`
+
+- [`22c3a00a1ada8404f53b72fffd1c4bace037a630`](https://github.com/saifmht19/Mind-Mirror-1/commit/22c3a00a1ada8404f53b72fffd1c4bace037a630) — feat(step1): stricter refusal detector, paired diagnostic suite, reproducible baseline
+- [`eb090cc344cad5e4ca95cd81ba37e74fde1f10bf`](https://github.com/saifmht19/Mind-Mirror-1/commit/eb090cc344cad5e4ca95cd81ba37e74fde1f10bf) — feat(step2): paired-data generator, blind two-reviewer sheet, opt-in mapping v2
+- [`10fc735ad61d03f1a73cb0f0d4c1c1e9d62fe289`](https://github.com/saifmht19/Mind-Mirror-1/commit/10fc735ad61d03f1a73cb0f0d4c1c1e9d62fe289) — Add demo model, escalation scorer, pair/tactic banks, demo UI and tests
+- [`a55c153031245dc516dc90616ec875085722f855`](https://github.com/saifmht19/Mind-Mirror-1/commit/a55c153031245dc516dc90616ec875085722f855) — Add spec v6: multi-label tactics (tactic set plus primary tactic)
+- [`2ca70fd541fb2084dc5891c7afbbaab8c6684353`](https://github.com/saifmht19/Mind-Mirror-1/commit/2ca70fd541fb2084dc5891c7afbbaab8c6684353) — Add scenario-card builder and 800 draft cards for full-conversation dataset
+- [`7751f09e5e6d3c7dd31bdea8a6018adc0379bc2f`](https://github.com/saifmht19/Mind-Mirror-1/commit/7751f09e5e6d3c7dd31bdea8a6018adc0379bc2f) — Add DISMISSING_CHOICE tactic and v6 multi-label fields to schema
+- [`72c9c05ef75f53b2a71f9c3a72eb3c22bb712acd`](https://github.com/saifmht19/Mind-Mirror-1/commit/72c9c05ef75f53b2a71f9c3a72eb3c22bb712acd) — Add AI-companion pilot batch, Ollama runner, and fix bare-no refusal detection
+- [`4611c330daffe5a60742b91122d499e1345f2d7c`](https://github.com/saifmht19/Mind-Mirror-1/commit/4611c330daffe5a60742b91122d499e1345f2d7c) — Add make_prompts.py: paste-ready web-chat prompts for conversation generation
+
 ## Shared history and integration status
 
 The following feature commits are reachable from multiple refs: `22c3a00a` (v5 refusal/diagnostic), `eb090cc3` (paired-data tools), `10fc735a` (demo model), `a55c1530` (multi-label spec), `2ca70fd5` (scenario cards), `7751f09e` (dismissing-choice schema), `72c9c05e` (companion pilot tooling), and `4611c330` (prompt generation). This overlap explains repeated files across branch diffs.
