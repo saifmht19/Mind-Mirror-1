@@ -133,6 +133,32 @@ class PostprocessTests(unittest.TestCase):
             self.assertEqual(normalized["conversation_annotation"]["escalating"], False)
             self.assertEqual((d / "raw.jsonl").read_bytes(), raw_bytes_before)
 
+    def test_schema_permitted_user_turn_notes_are_preserved(self):
+        source, raw = fixture("user-notes")
+        raw["turn_annotations"][0]["notes"] = "User declined the offer."
+        with tempdir() as td:
+            d = Path(td); dump(d / "in.jsonl", [source]); dump(d / "raw.jsonl", [raw]); (d / "prompt.txt").write_text("x", encoding="utf-8")
+            process(d / "in.jsonl", d / "raw.jsonl", d / "out.jsonl", d / "log.json",
+                annotator_id="tester", provider="Anthropic", model="dummy", model_version="test-1",
+                prompt_path=d / "prompt.txt", schema_path=SCHEMA, validator_path=VALIDATOR)
+            normalized = json.loads((d / "out.jsonl").read_text(encoding="utf-8"))
+            self.assertEqual(normalized["turn_annotations"][0]["notes"], "User declined the offer.")
+
+    def test_null_optional_conversation_notes_are_omitted_and_logged(self):
+        source, raw = fixture("null-notes")
+        raw["conversation_annotation"]["notes"] = None
+        with tempdir() as td:
+            d = Path(td); dump(d / "in.jsonl", [source]); dump(d / "raw.jsonl", [raw]); (d / "prompt.txt").write_text("x", encoding="utf-8")
+            raw_before = (d / "raw.jsonl").read_bytes()
+            process(d / "in.jsonl", d / "raw.jsonl", d / "out.jsonl", d / "log.json",
+                annotator_id="tester", provider="Google", model="dummy", model_version="test-1",
+                prompt_path=d / "prompt.txt", schema_path=SCHEMA, validator_path=VALIDATOR)
+            normalized = json.loads((d / "out.jsonl").read_text(encoding="utf-8"))
+            log = json.loads((d / "log.json").read_text(encoding="utf-8"))
+            self.assertNotIn("notes", normalized["conversation_annotation"])
+            self.assertEqual(log["records"][0]["null_optional_notes_omitted"], 1)
+            self.assertEqual((d / "raw.jsonl").read_bytes(), raw_before)
+
     def test_duplicate_ids_missing_evidence_and_inconsistent_derived_fields_rejected(self):
         source, raw = fixture("dup")
         with tempdir() as td:

@@ -8,6 +8,8 @@ No real 780-record annotation is performed by this tooling task. Keep blinded in
 
 The working raw-output format is specified in [RAW_MODEL_OUTPUT_CONTRACT.md](RAW_MODEL_OUTPUT_CONTRACT.md). The provider prompts are [Claude](CLAUDE_PROMPT.md) and [Gemini](GEMINI_PROMPT.md). Save each raw response unchanged before processing; do not edit it to satisfy the schema.
 
+See [PROVENANCE_LIMITATIONS.md](PROVENANCE_LIMITATIONS.md) for the local five-record trial's unresolved model-version and provider-side prompt provenance, and the evidence required before outputs can be treated as verified.
+
 ## Install and verify
 
 From the repository root in PowerShell:
@@ -17,7 +19,7 @@ python -m pip install -r annotation/requirements-v6-validation.txt
 python -m unittest tests.test_annotation_v6_2_protocol tests.test_contributor_compare tests.test_evaluation_prep tests.test_postprocess_annotations -v
 ```
 
-The postprocessor and assembler run both `jsonschema.Draft202012Validator` and the approved Python `validate_record` implementation. They fail closed and do not overwrite existing outputs. The schema description and validator docstring in this contributor snapshot identify the ratified record; constraints, executable logic, and the source-text hash algorithm are unchanged. The approved upstream blob SHAs and documentation-only snapshot SHAs are preserved in [PROVENANCE.md](protocol/PROVENANCE.md). The transformation log records raw/input/output SHA-256 digests, prompt digest, external model metadata, time, per-record span counts, derived values, and validator warnings. It does not copy conversation text or quoted spans into the log.
+The postprocessor and assembler run both `jsonschema.Draft202012Validator` and the approved Python `validate_record` implementation. They fail closed and do not overwrite existing outputs. Schema-permitted notes on user turns are retained. Optional `notes: null` fields are omitted from normalized output and counted per record in the transformation log; this does not alter semantic labels or the immutable raw response. The schema description and validator docstring in this contributor snapshot identify the ratified record; constraints, executable logic, and the source-text hash algorithm are unchanged. The approved upstream blob SHAs and documentation-only snapshot SHAs are preserved in [PROVENANCE.md](protocol/PROVENANCE.md). The transformation log records raw/input/output SHA-256 digests, prompt digest, external model metadata, time, per-record span counts, omitted null-note counts, derived values, and validator warnings. It does not copy conversation text or quoted spans into the log.
 
 ## Process Claude output
 

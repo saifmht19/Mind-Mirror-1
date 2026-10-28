@@ -131,13 +131,14 @@ def _normalize_one(source: dict[str, Any], raw: dict[str, Any], *, annotator_id:
         raise ProcessingError(f"{cid}: expected one raw turn_annotation per source turn")
     annotations: list[dict[str, Any]] = []
     refusal_turns: list[int] = []
+    null_optional_notes_omitted = 0
     for i, (turn, ann) in enumerate(zip(turns, raw_anns)):
         where = f"{cid} turn {i}"
         if not isinstance(ann, dict) or ann.get("turn_index") != i or ann.get("speaker") != turn["speaker"]:
             raise ProcessingError(f"{where}: annotation turn index/role mismatch")
         base = {"turn_index": i, "speaker": turn["speaker"], "label_source": LABEL_SOURCE}
         if turn["speaker"] == "user":
-            unexpected = set(ann) - {"turn_index", "speaker", "refusal", "refusal_span"}
+            unexpected = set(ann) - {"turn_index", "speaker", "refusal", "refusal_span", "notes"}
             if unexpected:
                 raise ProcessingError(f"{where}: unsupported/user-forbidden fields: {sorted(unexpected)}")
             refusal = ann.get("refusal")
@@ -157,6 +158,13 @@ def _normalize_one(source: dict[str, Any], raw: dict[str, Any], *, annotator_id:
                     raise ProcessingError(f"{where}: refusal=false requires refusal_span=null")
                 base["refusal"] = False
                 base["refusal_span"] = None
+            if "notes" in ann:
+                if ann["notes"] is None:
+                    null_optional_notes_omitted += 1
+                elif isinstance(ann["notes"], str):
+                    base["notes"] = ann["notes"]
+                else:
+                    raise ProcessingError(f"{where}: notes must be text or null")
             forbidden = {"tactic_set", "primary_tactic", "pressure_level", "tactic_spans", "out_of_taxonomy_suspected", "review_required"} & set(ann)
             if forbidden:
                 raise ProcessingError(f"{where}: user annotation has assistant-only fields: {sorted(forbidden)}")
@@ -205,9 +213,12 @@ def _normalize_one(source: dict[str, Any], raw: dict[str, Any], *, annotator_id:
             base.update({"tactic_set": labels, "primary_tactic": primary, "pressure_level": pressure,
                          "tactic_spans": resolved, "out_of_taxonomy_suspected": oot, "review_required": review})
             if "notes" in ann:
-                if not isinstance(ann["notes"], str):
-                    raise ProcessingError(f"{where}: notes must be text")
-                base["notes"] = ann["notes"]
+                if ann["notes"] is None:
+                    null_optional_notes_omitted += 1
+                elif isinstance(ann["notes"], str):
+                    base["notes"] = ann["notes"]
+                else:
+                    raise ProcessingError(f"{where}: notes must be text or null")
         annotations.append(base)
 
     qualifying = [a["turn_index"] for a in annotations if a["speaker"] == "assistant"
@@ -232,9 +243,12 @@ def _normalize_one(source: dict[str, Any], raw: dict[str, Any], *, annotator_id:
             raise ProcessingError(f"{cid}: supplied {key}={raw_conv[key]!r} conflicts with deterministic value {value!r}")
     conversation_annotation = {**derived, "honest_persistence": raw_conv["honest_persistence"], "label_source": LABEL_SOURCE}
     if "notes" in raw_conv:
-        if not isinstance(raw_conv["notes"], str):
-            raise ProcessingError(f"{cid}: conversation_annotation.notes must be text")
-        conversation_annotation["notes"] = raw_conv["notes"]
+        if raw_conv["notes"] is None:
+            null_optional_notes_omitted += 1
+        elif isinstance(raw_conv["notes"], str):
+            conversation_annotation["notes"] = raw_conv["notes"]
+        else:
+            raise ProcessingError(f"{cid}: conversation_annotation.notes must be text or null")
     record = {
         "schema_version": SCHEMA_VERSION, "guideline_version": GUIDELINE_VERSION,
         "conversation_id": cid, "source_text_sha256": canonical_source_hash(turns),
@@ -247,6 +261,7 @@ def _normalize_one(source: dict[str, Any], raw: dict[str, Any], *, annotator_id:
     log_entry = {"conversation_id": cid, "turn_count": len(turns),
                  "resolved_refusal_spans": sum(1 for a in annotations if a.get("refusal")),
                  "resolved_tactic_spans": sum(len(a.get("tactic_spans", [])) for a in annotations),
+                 "null_optional_notes_omitted": null_optional_notes_omitted,
                  "derived_fields": derived}
     return record, log_entry
 

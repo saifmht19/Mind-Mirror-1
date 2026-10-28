@@ -71,7 +71,10 @@ class ContributorBatchTests(unittest.TestCase):
         rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
         rows[0]["turns"][0]["text"] = "silently changed"
         body = "".join(json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\n" for row in rows)
-        path.write_text(body, encoding="utf-8")
+        # Preserve the exact bytes whose digest is written into the manifest.
+        # Path.write_text() may translate LF to CRLF on Windows, invalidating
+        # the deliberately recomputed digest before source-projection checking.
+        path.write_bytes(body.encode("utf-8"))
         manifest["batches"][0]["sha256"] = __import__("hashlib").sha256(body.encode("utf-8")).hexdigest()
         (out / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "differs from source projection"):
