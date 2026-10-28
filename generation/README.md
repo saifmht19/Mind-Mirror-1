@@ -1,61 +1,9 @@
-# MindMirror Synthetic Dataset Generation Pipeline (`generation/`)
+# Legacy synthetic-data generation
 
-This directory generates multi-turn and single-turn conversational benchmark datasets mapped to the **MindMirror Manipulation Taxonomy (0–5)**.
+> **Historical v1/v5 scripts.** This documentation describes an earlier single-label taxonomy and generator workflow. It is not the ratified v6.2.0 annotation contract, and its automatic random splits are not safe for v6 scenario variants.
 
----
+The generator and scripts in this directory are retained for reproducibility. They use earlier taxonomy assumptions and provider integrations; do not use them to regenerate, relabel, or replace the 800-conversation v6 corpus. No current v6 annotation inputs are stored here.
 
-## 🛠 Features
+For v6 research, consult the [multi-label research specification](https://github.com/saifmht19/Mind-Mirror-1/blob/v6-protocol-freeze/docs/spec_v6_multilabel.md), [ratified protocol](https://github.com/saifmht19/Mind-Mirror-1/blob/v6-protocol-freeze/docs/annotation_protocol_v6.2.0.md), and [contributor workflow](https://github.com/saifmht19/Mind-Mirror-1/tree/v6-annotation-contributors/contributor_annotation).
 
-- **Multi-Backend Support**:
-  - `offline`: Parameterized scenario templates across 6 domains (zero API key needed).
-  - `gemini`: Google Gemini API (`gemini-1.5-flash` or `gemini-2.0-flash`).
-  - `openai`: OpenAI API or any OpenAI-compatible server (Groq, DeepSeek, or local Ollama).
-- **Taxonomy Adherence**: Strictly enforces single-tactic dominance and context requirements (e.g. prior user refusal for Tactic 5).
-- **Deduplication**: Automatic SHA-256 normalized text hashing.
-- **Stratified Dataset Splitting**: Outputs `train.jsonl` (70%), `val.jsonl` (15%), and `test.jsonl` (15%) with balanced tactic representation.
-
----
-
-## 🚀 How to Run
-
-### 1. Offline Mode (Instant, No API Key Required)
-```bash
-python generation/generator.py --provider offline --samples-per-tactic 20
-```
-
-### 2. Using Google Gemini API
-Set your key:
-```bash
-# Windows PowerShell
-$env:GEMINI_API_KEY="your-gemini-api-key"
-```
-Run generation:
-```bash
-python generation/generator.py --provider gemini --samples-per-tactic 25 --model gemini-1.5-flash
-```
-
-### 3. Using OpenAI / OpenAI-Compatible Endpoints
-Set your key:
-```bash
-# Windows PowerShell
-$env:OPENAI_API_KEY="your-openai-api-key"
-```
-Run generation:
-```bash
-python generation/generator.py --provider openai --samples-per-tactic 25 --model gpt-4o-mini
-```
-
-### 4. Using Local Ollama (Free, Local LLM)
-```bash
-python generation/generator.py --provider openai --base-url "http://localhost:11434/v1" --model "llama3" --samples-per-tactic 15
-```
-
----
-
-## 📂 Output Locations
-
-- **Full Dataset**: `data/generated/synthetic_dataset.json` and `.jsonl`
-- **Stratified Splits**:
-  - `data/splits/train.jsonl` (70%)
-  - `data/splits/val.jsonl` (15%)
-  - `data/splits/test.jsonl` (15%)
+The commands from the original README are intentionally not repeated here because they call external providers or write generated data. Preserve existing data and follow the versioned generator instructions for any separately approved future generation.

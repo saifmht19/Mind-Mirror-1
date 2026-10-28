@@ -1,9 +1,26 @@
 .venv/
 __pycache__/
 .env
+.env.*
+!.env.example
 *.pyc
 
 # Large generated data files (re-generate locally with scripts)
 data/chatbotmanip/
 data/generated/
 data/splits/
+
+# Private annotation material: keep blind text and raw/normalized outputs out of Git.
+private_data/
+private_annotation/
+data/conversations/private/
+data/conversations/batches/
+annotation/private/
+annotation/outputs/
+contributor_annotation/private_batches/
+contributor_annotation/raw_outputs/
+contributor_annotation/normalized_outputs/
+contributor_annotation/private_outputs/
+
+# Local secrets
+secrets/

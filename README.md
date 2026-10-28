@@ -1,171 +1,64 @@
-# MindMirror 🪞
+# MindMirror
 
-MindMirror is an AI safety and guardrail system designed to audit, detect, and classify conversational manipulation tactics in real-time dialogs.
+MindMirror is a research project studying how conversational assistants respond to user choices and refusals, including potentially manipulative persuasion across multiple turns. The v6 work is a synthetic-data research pipeline; it is not a deployed guardrail product and its current corpus is not human-verified gold-standard data.
 
----
+## Current research status
 
-## 📂 Project Structure
+- The v6.2.0 annotation protocol is ratified. The pilot vocabulary contains exactly six tactics: guilt-tripping, false urgency, excessive flattery, pressure after refusal, fear appeals, and dismissing user choice. The pilot excludes `other-dark-pattern`; suspected out-of-taxonomy behavior is flagged separately for human review.
+- The cleaned 800-conversation corpus and the frozen 20-conversation v6 pilot have been structurally checked. Pilot adjudication remains preliminary and contains unresolved semantic issues; it must not be described as human gold data.
+- Two contributors are annotating the non-pilot records independently. The 780 conversation inputs and annotation outputs are private working materials and are not stored in this public repository.
+- Scenario grouping and label review are prerequisites for leakage-safe evaluation. Do not finalize train/validation/test splits from unreviewed `group_id`, `pair_id`, `situation`, or generator-intended labels.
+- Model training and confirmatory evaluation are not the current annotation workflow. Synthetic-only results cannot establish broad real-world generalization.
+
+## Canonical v6 resources
+
+The ratified protocol and active workflow are maintained on separate branches:
+
+- [Ratified v6.2.0 protocol](https://github.com/saifmht19/Mind-Mirror-1/blob/v6-protocol-freeze/docs/annotation_protocol_v6.2.0.md)
+- [Protocol schema and validator](https://github.com/saifmht19/Mind-Mirror-1/tree/v6-protocol-freeze/annotation)
+- [Claude/Gemini contributor workflow](https://github.com/saifmht19/Mind-Mirror-1/tree/v6-annotation-contributors/contributor_annotation)
+- [Repository cleanup inventory](docs/REPOSITORY_CLEANUP.md)
+- [v6 multi-label research specification](https://github.com/saifmht19/Mind-Mirror-1/blob/v6-protocol-freeze/docs/spec_v6_multilabel.md)
+
+Do not edit or infer approval from an old schema or from a successful structural validation. Historical protocol versions and adjudicated records are retained for provenance.
+
+## Repository structure
 
 ```text
-Mind-Mirror/
-├── taxonomy/
-│   └── taxonomy.md          # Canonical definition of manipulation tactics (0–5 Priority, 6–9 Extended)
-├── data/
-│   └── schema.py            # Pydantic data models for tactics, turns, benchmarks, and annotations
-├── annotation/
-│   ├── pilot_dataset.json   # 20 curated pilot test examples with dialogue context & ground truth
-│   ├── labeler.py           # Interactive CLI labeling & Cohen's Kappa agreement evaluation tool
-│   ├── results/             # Saved annotator outputs
-│   └── README.md            # Detailed pilot testing instructions
-├── generation/              # Synthetic dialogue generation pipeline (Phase 2)
-├── models/                  # Manipulation classifiers & prompt-based evaluators (Phase 3)
-├── api/                     # Backend API services (FastAPI) (Phase 4)
-└── ui/                      # Interactive frontend dashboard (Phase 5)
+annotation/       Historical v1/v5 pilot UI and its existing records; not the v6.2 workflow
+api/              Earlier demo API
+data/              Dataset import, structural audit, schema, and scenario-grouping utilities
+docs/              Research specification, scenario grouping, and repository inventory
+evaluation/        v6 evaluation-preparation interfaces and metrics; not a training command
+generation/        Legacy synthetic-data generation scripts and documentation
+models/            Historical baseline/context model code and existing artifacts
+taxonomy/          Historical v1 taxonomy
+tests/             Automated tests and synthetic fixtures
+ui/                Earlier demo UI
 ```
 
----
+Private corpora, blind annotation inputs, raw provider outputs, normalized annotation outputs, and full private manifests belong in explicitly authorized private storage, not in this public repository.
 
-## 🎯 Priority Taxonomy (v1 Scope)
+## Four-member team setup
 
-MindMirror enforces a **single dominant tactic per message**:
+1. Clone the repository and read this README plus [the cleanup inventory](docs/REPOSITORY_CLEANUP.md).
+2. For v6 protocol review, inspect the `v6-protocol-freeze` branch and its protocol version history.
+3. For annotation work, check out `v6-annotation-contributors` and follow its [contributor README](https://github.com/saifmht19/Mind-Mirror-1/blob/v6-annotation-contributors/contributor_annotation/README.md). Each annotator should keep provider input and raw output in the approved private location and preserve raw output unchanged.
+4. Do not put conversation text, annotated records, or full manifests in issues, pull requests, shared public branches, or commit messages. Coordinate schema/protocol questions with the research lead; leave disagreements unresolved until reviewed.
+5. Before changing shared code or protocol documents, use a focused branch and pull request. Do not work directly on `main` or overwrite either active v6 branch.
 
-- `0: Neutral` — Helpful, honest information or reasonable follow-up with no emotional pressure.
-- `1: Guilt-tripping` — Frames user refusal/disagreement as personal failing, betrayal, or fault.
-- `2: Excessive Urgency` — Invents/exaggerates deadlines or scarcity to rush decisions.
-- `3: Fear-based Persuasion` — Exaggerates negative consequences to provoke anxiety rather than inform.
-- `4: Excessive Flattery` — Unearned or disproportionate praise to lower user resistance.
-- `5: Repeated Pressure After Refusal` — Re-raises a previously declined request without respecting refusal.
+## Tests
 
----
+From the repository root, run the available unit tests:
 
-## 🚀 Quick Start (Pilot Annotation & Validation)
-
-### 1. View Taxonomy Cheat Sheet
 ```bash
-python annotation/labeler.py --list-tactics
+python -m unittest discover -s tests -v
 ```
 
-### 2. Run Interactive Labeling Session
-```bash
-python annotation/labeler.py --name YourName
-```
+Some historical API/model tests may require optional dependencies. Install only dependencies documented by the relevant component; do not train models as part of annotation setup. Tests validate software behavior, not semantic correctness of labels.
 
-### 3. Evaluate Inter-Annotator Agreement (Cohen's Kappa & % Agreement)
-```bash
-python annotation/labeler.py --compare annotation/results/pilot_team_member_a.json annotation/results/pilot_team_member_b.json
-```
+## Historical and legacy work
 
-### 4. Evaluate Against Ground Truth
-```bash
-python annotation/labeler.py --evaluate-gold annotation/results/pilot_team_member_a.json
-```
+The repository contains earlier v1 single-label taxonomy, v5 persistence/demo experiments, and v6 exploratory schema/card work. Their code, artifacts, and notes are preserved for provenance. The root `taxonomy/`, `annotation/`, and `generation/` documentation should be treated as historical unless it explicitly points to the ratified v6.2.0 workflow. Do not merge an obsolete schema or tactic definition into v6.
 
----
-
-## 🧠 Phase 3: Machine Learning & Context Models
-
-MindMirror features a dual-stage classification pipeline:
-
-1. **Baseline Model (`models/train_baseline.py`)**: Word + char n-gram TF-IDF vectorizer paired with multinomial Logistic Regression.
-2. **Conversational Context Model (`models/train_context_model.py`)**: Augments lexical features with dialogue-level refusal dynamics:
-   - User refusal regex detectors (`"no thanks"`, `"not interested"`, `"stop"`)
-   - Turn counts & distance since refusal
-   - Cross-turn push flags & persistence metrics
-   - Output calibrated probabilities & automated human-readable explanations
-
-### Train & Evaluate:
-```bash
-# Baseline evaluation
-python models/train_baseline.py
-
-# Context-aware model training & saving artifacts
-python models/train_context_model.py
-```
-
----
-
-## ⚡ Phase 4: REST API Backend (FastAPI)
-
-The backend provides high-performance HTTP endpoints for real-time guardrail evaluation and batch conversation auditing.
-
-### Start the Server:
-```bash
-python -m uvicorn api.main:app --reload --port 8000
-```
-- Interactive Swagger UI: `http://localhost:8000/docs`
-- Redoc Documentation: `http://localhost:8000/redoc`
-
-### Key Endpoints:
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/v1/health` | Service health status & model loading info |
-| `GET` | `/api/v1/tactics` | All 6 priority tactics with formal definitions |
-| `POST` | `/api/v1/detect` | Analyse single chatbot message (with optional context) |
-| `POST` | `/api/v1/audit` | Audit full multi-turn conversation & compute manipulation score |
-
-### Example Detection Request:
-```bash
-curl -X POST "http://localhost:8000/api/v1/detect" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "target_message": "Are you completely sure? You really cannot pass up this discount before midnight.",
-    "context": [
-      {"speaker": "assistant", "text": "Would you like to purchase our yearly plan?"},
-      {"speaker": "user", "text": "No, I am not interested."}
-    ]
-  }'
-```
-
-### Run Automated API Tests:
-```bash
-python -m unittest tests/test_api.py
-```
-
-
----
-
-## 🔬 MindMirror v6 — Annotation integrity and research readiness
-
-> **Research status:** The v6 synthetic-conversation dataset and its AI-assisted pilot are **not human-verified gold-standard data**. The earlier v1 single-label taxonomy documented above is historical; v6 uses its own multi-label specification in `docs/spec_v6_multilabel.md`.
-
-- **Freeze annotation rules before scaling.** Finalize and version the v6 taxonomy, refusal criteria, primary-label precedence, pressure scale, tactic-span rules, and the operational definition of escalation. Keep an immutable copy of the pilot guidelines and a dated revision/changelog. Record the guideline version used for every annotation batch.
-- **Retain provenance and independent judgments.** Preserve original conversation text and both independent AI annotation files unchanged. Keep adjudicated labels, disagreement reports, unresolved cases, model identities, and validation reports as separate derived artifacts. AI–AI agreement is not human inter-annotator agreement.
-- **Verify before expansion.** Independently validate the adjudicated 20-conversation pilot against the original JSONL and full v6 specification, including turn indices, canonical tactic IDs, multi-label consistency, exact zero-based half-open evidence spans, and escalation/onset logic. The reported adjudication left **12 unresolved issues** requiring review; these must not be silently converted into certain labels.
-- **Avoid evaluation leakage.** Review scenario-grouping conflicts before making group-aware train/validation/test splits. Do not treat `card_id`, lexical similarity, or generator-intended labels as verified ground truth. Keep related scenario variants in the same split.
-- **Document evidence limits.** The 800 synthetic conversations have not yet received verified turn-level labels. AI-adjudicated labels should be described as *silver-standard*. Independent human review of a representative sample and testing on external/held-out data are strongly recommended before confirmatory evaluation or publication claims.
-
-**Important:** If the guidelines change after pilot adjudication, document what changed and reannotate or revalidate affected examples under the new version. Do not mix annotation batches based on different definitions without tracking their versions.
-
-
-### v6 pilot findings (AI-adjudicated; preliminary)
-
-The 20-conversation pilot contains **160 turns (80 user / 80 assistant)** across four domains. The AI-adjudicated report records **51 user-refusal turns**, **44 tactic-positive assistant turns**, **16/20 conversations meeting the v6 post-refusal high-pressure rule**, and **3 conversations with candidate honest persistence**. These are **pilot-specific counts, not population prevalence**.
-
-| Tactic (multi-label) | Assistant-turn count |
-|---|---:|
-| Pressure after refusal | 35 |
-| False urgency | 10 |
-| Guilt-tripping | 9 |
-| Dismissing user choice | 8 |
-| Fear appeals | 6 |
-| Excessive flattery | 5 |
-
-Two independent AI annotators achieved **91.2% primary-tactic agreement (Cohen's κ = 0.852)**, **80% exact tactic-set match**, **92.5% user-refusal agreement**, and **100% agreement on the conversation-level post-refusal high-pressure flag** on this selected pilot. They **did not consistently agree on onset** (onsets within one turn index: **9/16**). These are **AI–AI** reliability observations, not evidence of label correctness or human agreement. The final adjudication retains **12 externally/semantically unresolved issues**, not necessarily structural errors.
-
-**Escalation terminology:** In the current pilot, `escalating` means **at least one assistant turn after a user refusal has pressure 2 or 3**, with onset at the first qualifying assistant turn. It **does not imply increasing pressure over time**. Analyze actual pressure growth, sustained pressure, and post-refusal high pressure as distinct measures. Do not silently reinterpret the existing schema flag.
-
-### Research checklist before training and publication
-
-- [ ] **Verify against the full v6 spec.** Check adjudicated annotations against `docs/spec_v6_multilabel.md` (the adjudicator did not have this document), original messages, exact span offsets, canonical tactic IDs, primary-label rules, and refusal/onset derivation. Run automated checks after every annotation batch.
-- [ ] **Triage all 12 unresolved pilot issues.** Distinguish internally contradicted deadlines from unsupported or unverifiable fictional product claims. Document whether a determination is evidence-backed, uncertain, or requires scenario-author metadata. Do not invent external facts about fictional apps.
-- [ ] **Freeze a versioned annotation protocol.** Specify refusal versus initial choice or cancellation; first mild re-offer versus coercive persistence; reasonable warnings versus fear appeals; evidence standard for false urgency; context-dependent pressure levels; and overlapping, minimal supporting spans. Keep revision history and revalidate affected labels after edits.
-- [ ] **Retain independent annotation provenance.** Keep both original AI labels, disagreement fields, adjudicator decisions, model family/version, prompts, dates, schema versions, input hashes, and final silver-standard output separate. Correct misidentified annotator IDs in derived metadata only.
-- [ ] **Balance and assess the full dataset.** Pilot counts show many more post-refusal pressure examples than other tactics; verify class support, domain diversity, respectful persuasion hard negatives, realistic dialogue, refusal patterns, and potential annotation shortcuts across all 800. Do not infer full-dataset proportions from the pilot.
-- [ ] **Resolve scenario grouping before splitting.** Prior audit reported **555 candidate edges, 50 contradictory-signal edges, and 392 conversations without candidate links**. Treat these as review candidates, not confirmed pairs. Keep scenario/template variants together across train/validation/test and account for generator leakage.
-- [ ] **Recover provenance where possible.** The audit reported missing generator-family metadata on **705 records**, and missing model/date on **155 records each**. Record unknown provenance as unknown rather than fabricating it. The standalone wellness domain mentioned in the v6 spec was not represented in the four-domain 800-conversation set.
-- [ ] **Scale labeling with quality controls.** Keep the 20 pilot conversations separate as a calibration set; independently label the other conversations under the frozen protocol. Review disagreements and uncertainty; ideally obtain **independent human validation** on a stratified subset, especially ambiguous and rare tactics. Never call AI-only adjudication human gold standard.
-- [ ] **Evaluate the actual research claim.** Compare single-turn and context-aware baselines, history-window ablations, refusal-conditioned features, escalation/pressure-change baselines, and long-context alternatives. Include held-out generator/domain tests, external manipulation and honest-persuasion benchmarks, per-tactic precision/recall, class supports, uncertainty, significance, and error analysis. Avoid claims of generalization from synthetic-only testing.
-- [ ] **Document limitations in the paper.** Report synthetic data provenance, selection and generator biases, AI–AI agreement versus human reliability, unresolved claims, label subjectivity, scenario grouping decisions, and the difference between post-refusal high pressure and true escalation.
-
-**Publication gate:** Structural JSONL validation alone is not evidence that labels are semantically correct or that the dataset is ready for confirmatory evaluation. Finalize the protocol, independently validate labels, make leakage-safe splits, and test on genuinely held-out/external data before publication claims.
+See [docs/REPOSITORY_CLEANUP.md](docs/REPOSITORY_CLEANUP.md) for the remote branch audit, preservation decisions, and proposed archive layout.
