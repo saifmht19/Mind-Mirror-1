@@ -9,6 +9,7 @@ text or adjudicate semantic claims.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -23,6 +24,16 @@ PRIMARY_V1 = TACTICS_V1 | {"neutral"}
 PRIMARY_V2 = TACTICS_V2 | {"neutral"}
 LABEL_SOURCES = {"human", "adjudicated", "labeler", "scenario", "mapped"}
 HASH = re.compile(r"^[0-9a-f]{64}$")
+
+
+def source_text_sha256(turns: list[dict[str, Any]]) -> str:
+    """Hash exact ordered visible turn values using the v6.2 canonical recipe."""
+    canonical = [
+        {"turn_index": turn["turn_index"], "speaker": turn["speaker"], "text": turn["text"]}
+        for turn in turns
+    ]
+    payload = json.dumps(canonical, ensure_ascii=False, separators=(",", ":"))
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
 def _span_errors(text: str, span: Any, location: str) -> list[str]:
@@ -66,6 +77,13 @@ def validate_record(record: dict[str, Any]) -> dict[str, list[str]]:
     if not isinstance(turns,list) or not turns: err("turns", "must be a non-empty array");turns=[]
     if not isinstance(anns,list): err("turn_annotations", "must be an array");anns=[]
     if len(turns)!=len(anns): err("turn_annotations", f"expected one entry per turn ({len(turns)}), got {len(anns)}")
+    if guideline == "v6.2.0" and turns:
+        try:
+            expected_hash = source_text_sha256(turns)
+            if record.get("source_text_sha256") != expected_hash:
+                err("source_text_sha256", "does not match canonical ordered turn text")
+        except (KeyError, TypeError) as exc:
+            err("source_text_sha256", f"cannot hash malformed source turns: {exc}")
     if turns and not {t.get("speaker") for t in turns if isinstance(t,dict)}.issuperset({"user","assistant"}):
         err("turns", "conversation must contain at least one user and one assistant turn")
     for i, turn in enumerate(turns):
@@ -87,6 +105,8 @@ def validate_record(record: dict[str, Any]) -> dict[str, list[str]]:
         if speaker=="user":
             if not isinstance(ann.get("refusal"),bool): err(f"turn_annotations[{i}].refusal", "must be an explicit boolean")
             span=ann.get("refusal_span")
+            if guideline == "v6.2.0" and "refusal_span" not in ann:
+                err(f"turn_annotations[{i}].refusal_span", "required; use null when refusal is false")
             if ann.get("refusal") is True:
                 errors.extend(_span_errors(text,span,f"turn_annotations[{i}].refusal_span"))
             elif span is not None: err(f"turn_annotations[{i}].refusal_span", "must be null when refusal is false")
@@ -94,6 +114,8 @@ def validate_record(record: dict[str, Any]) -> dict[str, list[str]]:
             if forbidden: err(f"turn_annotations[{i}]", f"user turn cannot contain assistant fields: {sorted(forbidden)}")
         elif speaker=="assistant":
             if guideline == "v6.2.0":
+                forbidden_refusal={"refusal", "refusal_span"}&set(ann)
+                if forbidden_refusal: err(f"turn_annotations[{i}]", f"assistant turn cannot contain user refusal fields: {sorted(forbidden_refusal)}")
                 if not isinstance(ann.get("out_of_taxonomy_suspected"), bool): err(f"turn_annotations[{i}].out_of_taxonomy_suspected", "must be boolean")
                 if not isinstance(ann.get("review_required"), bool): err(f"turn_annotations[{i}].review_required", "must be boolean")
                 if ann.get("out_of_taxonomy_suspected") is True:
@@ -145,6 +167,27 @@ def validate_record(record: dict[str, Any]) -> dict[str, list[str]]:
     conv=record.get("conversation_annotation")
     if not isinstance(conv,dict): err("conversation_annotation", "required object")
     else:
+        if guideline == "v6.2.0":
+            expected_any = any(
+                isinstance(turns[i], dict) and turns[i].get("speaker") == "assistant"
+                and isinstance(ann, dict) and isinstance(ann.get("tactic_set"), list)
+                and any(tactic in TACTICS_V2 for tactic in ann["tactic_set"] if isinstance(tactic, str))
+                for i, ann in aligned.items()
+            )
+            unresolved_review = any(
+                isinstance(turns[i], dict) and turns[i].get("speaker") == "assistant"
+                and isinstance(ann, dict) and ann.get("review_required") is True
+                for i, ann in aligned.items()
+            )
+            expected_clean_negative = not expected_any and not unresolved_review
+            if not isinstance(conv.get("any_manipulation"), bool):
+                err("conversation_annotation.any_manipulation", "must be an explicit Boolean")
+            elif conv.get("any_manipulation") is not expected_any:
+                err("conversation_annotation.any_manipulation", f"must equal derived six-tactic value {expected_any}")
+            if not isinstance(conv.get("clean_negative_eligible"), bool):
+                err("conversation_annotation.clean_negative_eligible", "must be an explicit Boolean")
+            elif conv.get("clean_negative_eligible") is not expected_clean_negative:
+                err("conversation_annotation.clean_negative_eligible", f"must equal derived value {expected_clean_negative}; unresolved review cases are not clean negatives")
         if not isinstance(conv.get("escalating"),bool): err("conversation_annotation.escalating", "must be boolean")
         if not isinstance(conv.get("honest_persistence"),bool): err("conversation_annotation.honest_persistence", "must be boolean")
         if not isinstance(conv.get("label_source"),str) or conv.get("label_source") not in LABEL_SOURCES: err("conversation_annotation.label_source", "must use a canonical label source")
