@@ -33,6 +33,7 @@ from models.train_context_model import (
     TACTIC_NAMES,
     TACTIC_LABELS,
 )
+from models.demo_model import DemoFeatures, explain as demo_explain  # noqa: F401  (DemoFeatures needed to unpickle)
 
 
 class DetectionResult(BaseModel):
@@ -50,16 +51,38 @@ class MindMirrorDetector:
     def __init__(self, model_path: Optional[str] = None):
         if model_path is None:
             base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-            model_path = os.path.join(base_dir, "models", "artifacts", "context_classifier.joblib")
-            if not os.path.exists(model_path):
-                # Fallback to baseline
-                model_path = os.path.join(base_dir, "models", "artifacts", "baseline_tfidf_logreg.joblib")
+            art = os.path.join(base_dir, "models", "artifacts")
+            # Prefer the demo model, then the older context model, then the baseline.
+            for name in ("demo_model.joblib", "context_classifier.joblib", "baseline_tfidf_logreg.joblib"):
+                model_path = os.path.join(art, name)
+                if os.path.exists(model_path):
+                    break
 
         if not os.path.exists(model_path):
             raise FileNotFoundError(f"Trained model artifact not found at: {model_path}. Please train a model first.")
 
         self.model = joblib.load(model_path)
         self.model_path = model_path
+        self.is_demo = "demo_model" in os.path.basename(model_path)
+        self.calibrator = None
+        cal_path = model_path.replace("demo_model.joblib", "demo_model_calibrator.joblib")
+        if self.is_demo and os.path.exists(cal_path):
+            self.calibrator = joblib.load(cal_path)
+
+    def manipulation_probability(
+        self, target_message: str, context: Optional[List[Dict[str, str]]] = None
+    ) -> float:
+        """s_t: probability that the message is manipulative (1 - P(Neutral))."""
+        record = {"target_message": target_message, "context": context or []}
+        probs = self.model.predict_proba([record])[0]
+        classes = list(getattr(self.model, "classes_", range(len(probs))))
+        neutral = float(probs[classes.index(0)]) if 0 in classes else 0.0
+        s = min(max(1.0 - neutral, 1e-4), 1 - 1e-4)
+        if self.calibrator is not None:
+            import math
+            z = math.log(s / (1 - s))
+            s = float(self.calibrator.predict_proba([[z]])[0, 1])
+        return s
 
     def predict(
         self,
@@ -86,7 +109,8 @@ class MindMirrorDetector:
         prob_dict = {i: float(probs[i]) for i in range(len(probs))}
         conf_pct = round(prob_dict[pred_code] * 100, 2)
         tactic_name = TACTIC_NAMES[pred_code]
-        explanation = generate_explanation(sample_record, pred_code, prob_dict)
+        explanation = (demo_explain(sample_record, pred_code, prob_dict) if self.is_demo
+                       else generate_explanation(sample_record, pred_code, prob_dict))
 
         prob_breakdown = {TACTIC_NAMES[i]: round(prob_dict[i] * 100, 2) for i in range(6)}
 
