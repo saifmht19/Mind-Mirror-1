@@ -1,9 +1,39 @@
+# Python
 .venv/
 __pycache__/
-.env
 *.pyc
+.pytest_cache/
 
-# Large generated data files (re-generate locally with scripts)
+# Secrets (keep the template)
+.env
+.env.*
+!.env.example
+
+# Frontend build output
+frontend/node_modules/
+frontend/dist/
+frontend/*.tsbuildinfo
+
+# Large or private data, regenerated locally
 data/chatbotmanip/
 data/generated/
 data/splits/
+/private_annotation_batches/
+
+# Research corpus and annotation pilot stay off the public repo (blind annotation in progress)
+data/conversations/raw/
+data/conversations/processed/
+data/conversations/derived/
+# Experiment results that embed corpus conversation text
+backend/multiturn_experiment.json
+# Generated prompt batches
+generation/conversations/prompts.txt
+
+# Local model files must stay outside Git
+*.gguf
+*.safetensors
+simulator/weights/
+
+# Archives and agent scratch space
+*.zip
+.superpowers/

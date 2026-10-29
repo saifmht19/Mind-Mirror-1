@@ -39,11 +39,13 @@ from sklearn.metrics import (
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from data.schema import Tactic, BenchmarkSample
+from models.refusal import has_prior_refusal, last_refusal_text
 
 
 TACTIC_NAMES = [Tactic(i).display_name for i in range(6)]
 TACTIC_LABELS = list(range(6))
 
+# Legacy regex, kept only so evaluation/diagnostic_suite.py can compare against it.
 REFUSAL_PATTERN = re.compile(
     r"\b(no|nope|not interested|no thanks|no thank you|don't want|dont want|rather not|"
     r"cancel|stop|nevermind|never mind|pass|decline|decline that|skip|not right now|"
@@ -52,8 +54,19 @@ REFUSAL_PATTERN = re.compile(
 )
 
 
+def legacy_has_refusal(context: List[Dict[str, Any]]) -> bool:
+    """Original refusal feature: last user turn matches the broad regex above."""
+    for turn in reversed(context):
+        if str(turn.get("speaker", "")).lower() in ("user", "human"):
+            return bool(REFUSAL_PATTERN.search(turn.get("text", "")))
+    return False
+
+
 class ConversationalFeatureExtractor(BaseEstimator, TransformerMixin):
     """Extracts conversational interaction signals from dialogue context."""
+
+    def __init__(self, refusal_fn=None):
+        self.refusal_fn = refusal_fn
 
     def fit(self, X, y=None):
         return self
@@ -64,15 +77,13 @@ class ConversationalFeatureExtractor(BaseEstimator, TransformerMixin):
             context = r.get("context", [])
             target = r.get("target_message", "")
 
-            # 1. Has prior user refusal / resistance (Crucial diagnostic signal for Tactic 5)
-            has_refusal = 0.0
-            for turn in reversed(context):
-                speaker = turn.get("speaker", "").lower()
-                text = turn.get("text", "")
-                if speaker in ["user", "human"]:
-                    if REFUSAL_PATTERN.search(text):
-                        has_refusal = 1.0
-                    break
+            # 1. Has prior user refusal (crucial diagnostic signal for Tactic 5)
+            # Models pickled before refusal_fn existed keep the legacy behaviour they were trained with.
+            if not hasattr(self, "refusal_fn"):
+                refusal_fn = legacy_has_refusal
+            else:
+                refusal_fn = self.refusal_fn or has_prior_refusal
+            has_refusal = 1.0 if refusal_fn(context) else 0.0
 
             # 2. Target ends with question mark (often used in re-prompting)
             is_question = 1.0 if target.strip().endswith("?") else 0.0
@@ -175,14 +186,15 @@ import scipy.sparse
 class ContextFeatureUnion(BaseEstimator, TransformerMixin):
     """Unified multi-signal feature extractor combining target text, context text, and interaction cues."""
 
-    def __init__(self):
+    def __init__(self, refusal_fn=None):
+        self.refusal_fn = refusal_fn
         self.target_tfidf = TfidfVectorizer(
             ngram_range=(1, 2), max_features=4000, sublinear_tf=True, strip_accents="unicode", lowercase=True
         )
         self.context_tfidf = TfidfVectorizer(
             ngram_range=(1, 2), max_features=2500, sublinear_tf=True, strip_accents="unicode", lowercase=True
         )
-        self.extractor = ConversationalFeatureExtractor()
+        self.extractor = ConversationalFeatureExtractor(refusal_fn=refusal_fn)
 
     def fit(self, records: List[Dict[str, Any]], y=None):
         target_texts = [r.get("target_message", "") for r in records]
@@ -207,7 +219,7 @@ class ContextFeatureUnion(BaseEstimator, TransformerMixin):
         return scipy.sparse.hstack([X_target, X_context, X_inter]).tocsr()
 
 
-def build_context_pipeline() -> Pipeline:
+def build_context_pipeline(refusal_fn=None) -> Pipeline:
     """Build multi-modal pipeline combining Target text, Context text, and Interaction features."""
     clf = LogisticRegression(
         C=2.5,
@@ -218,7 +230,7 @@ def build_context_pipeline() -> Pipeline:
     )
 
     return Pipeline([
-        ("features", ContextFeatureUnion()),
+        ("features", ContextFeatureUnion(refusal_fn=refusal_fn)),
         ("clf", clf),
     ])
 
@@ -232,12 +244,7 @@ def generate_explanation(sample: Dict[str, Any], pred_label: int, prob_dict: Dic
 
     cues = []
     if pred_label == 5:  # Repeated Pressure
-        refusal_turn = None
-        for t in reversed(context):
-            if t.get("speaker", "").lower() in ["user", "human"]:
-                if REFUSAL_PATTERN.search(t.get("text", "")):
-                    refusal_turn = t.get("text", "")
-                    break
+        refusal_turn = last_refusal_text(context)
         if refusal_turn:
             cues.append(f"Detected explicit prior refusal by user: \"{refusal_turn}\"")
         cues.append("Target message continues to re-pitch/push despite lack of acceptance.")
