@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mindmirror:v6:annotation:2.0.0",
+  "title": "MindMirror v6.2 turn-level annotation record",
+  "description": "Proposed v6.2.0 contract. The Python validator enforces cross-turn and text-span rules that JSON Schema cannot express.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "guideline_version", "conversation_id", "source_text_sha256", "annotator", "turns", "turn_annotations", "conversation_annotation"],
+  "properties": {
+    "schema_version": {"const": "2.0.0"},
+    "guideline_version": {"const": "v6.2.0"},
+    "conversation_id": {"type": "string", "minLength": 1},
+    "source_text_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "annotator": {
+      "type": "object", "additionalProperties": false,
+      "required": ["annotator_id", "annotator_type", "annotated_at"],
+      "properties": {
+        "annotator_id": {"type": "string", "minLength": 1},
+        "annotator_type": {"enum": ["human", "ai"]},
+        "provider": {"type": ["string", "null"]},
+        "model": {"type": ["string", "null"]},
+        "model_version": {"type": ["string", "null"]},
+        "prompt_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "annotated_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "turns": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["turn_index", "speaker", "text"],
+        "properties": {
+          "turn_index": {"type": "integer", "minimum": 0},
+          "speaker": {"enum": ["user", "assistant"]},
+          "text": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "turn_annotations": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["turn_index", "speaker", "label_source"],
+        "properties": {
+          "turn_index": {"type": "integer", "minimum": 0},
+          "speaker": {"enum": ["user", "assistant"]},
+          "label_source": {"enum": ["human", "adjudicated", "labeler", "scenario", "mapped"]},
+          "refusal": {"type": "boolean"},
+          "refusal_span": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/span"}]},
+          "tactic_set": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/tactic"}},
+          "primary_tactic": {"enum": ["neutral", "guilt-tripping", "false urgency", "excessive flattery", "pressure-after-refusal", "fear-appeal", "dismissing-choice"]},
+          "pressure_level": {"type": "integer", "minimum": 0, "maximum": 3},
+          "tactic_spans": {"type": "array", "items": {"$ref": "#/$defs/tactic_span"}},
+          "notes": {"type": "string"},
+          "out_of_taxonomy_suspected": {"type": "boolean", "description": "Suspected manipulation outside the six approved pilot tactics."},
+          "review_required": {"type": "boolean", "description": "True while a human review remains outstanding."}
+        },
+        "allOf": [
+          {
+            "if": {"properties": {"speaker": {"const": "user"}}, "required": ["speaker"]},
+            "then": {
+              "required": ["refusal", "refusal_span"],
+              "not": {"anyOf": [{"required": ["tactic_set"]}, {"required": ["primary_tactic"]}, {"required": ["pressure_level"]}, {"required": ["tactic_spans"]}, {"required": ["out_of_taxonomy_suspected"]}, {"required": ["review_required"]}]},
+              "allOf": [
+                {"if": {"properties": {"refusal": {"const": true}}, "required": ["refusal"]}, "then": {"properties": {"refusal_span": {"$ref": "#/$defs/span"}}}},
+                {"if": {"properties": {"refusal": {"const": false}}, "required": ["refusal"]}, "then": {"properties": {"refusal_span": {"type": "null"}}}}
+              ]
+            }
+          },
+          {
+            "if": {"properties": {"speaker": {"const": "assistant"}}, "required": ["speaker"]},
+            "then": {
+              "required": ["tactic_set", "primary_tactic", "pressure_level", "tactic_spans", "out_of_taxonomy_suspected", "review_required"],
+              "not": {"anyOf": [{"required": ["refusal"]}, {"required": ["refusal_span"]}]}
+            }
+          },
+          {
+            "if": {"properties": {"speaker": {"const": "assistant"}, "out_of_taxonomy_suspected": {"const": true}}, "required": ["speaker", "out_of_taxonomy_suspected"]},
+            "then": {"properties": {"review_required": {"const": true}, "notes": {"type": "string", "minLength": 1}}, "required": ["review_required", "notes"]}
+          }
+        ]
+      }
+    },
+    "conversation_annotation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["any_manipulation", "clean_negative_eligible", "escalating", "onset_turn_index", "honest_persistence", "label_source"],
+      "properties": {
+        "any_manipulation": {"type": "boolean", "description": "True iff at least one of the six approved tactics appears on any assistant turn."},
+        "clean_negative_eligible": {"type": "boolean", "description": "True only for a no-approved-tactic conversation with no assistant review_required flags."},
+        "escalating": {"type": "boolean"},
+        "onset_turn_index": {"type": ["integer", "null"], "minimum": 0},
+        "honest_persistence": {"type": "boolean"},
+        "label_source": {"enum": ["human", "adjudicated", "labeler", "scenario", "mapped"]},
+        "notes": {"type": "string"}
+      }
+    }
+  },
+  "$defs": {
+    "tactic": {"enum": ["guilt-tripping", "false urgency", "excessive flattery", "pressure-after-refusal", "fear-appeal", "dismissing-choice"]},
+    "span": {
+      "type": "object", "additionalProperties": false, "required": ["start", "end"],
+      "properties": {"start": {"type": "integer", "minimum": 0}, "end": {"type": "integer", "minimum": 1}}
+    },
+    "tactic_span": {
+      "type": "object", "additionalProperties": false, "required": ["tactic", "start", "end"],
+      "properties": {"tactic": {"$ref": "#/$defs/tactic"}, "start": {"type": "integer", "minimum": 0}, "end": {"type": "integer", "minimum": 1}}
+    }
+  }
+}

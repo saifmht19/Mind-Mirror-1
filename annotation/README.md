@@ -70,3 +70,8 @@ Output includes:
 python annotation/labeler.py --evaluate-gold annotation/results/pilot_team_member_a.json
 ```
 Outputs per-tactic recall and a detailed inspection of mismatches against ground truth.
+
+
+## v6.2.0 proposal
+
+The v6.2.0 protocol and schema are a proposed version pending explicit research-lead ratification. Do not start new annotation with them until ratified. See [`docs/annotation_protocol_v6.2.0.md`](../docs/annotation_protocol_v6.2.0.md) and [`docs/spec_v6.2_annotation_addendum.md`](../docs/spec_v6.2_annotation_addendum.md). Existing v6.1.0 labels and files remain unchanged.

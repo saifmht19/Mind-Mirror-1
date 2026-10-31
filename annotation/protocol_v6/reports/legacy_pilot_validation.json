@@ -1,0 +1,92 @@
+{
+  "pilot_count": 20,
+  "pilot_ids_unique": true,
+  "pilot_structural_errors": [],
+  "legacy_pilot_turn_structure": {
+    "turns_including_target": 45,
+    "user_turns": 21,
+    "assistant_turns": 24,
+    "domain_counts": {
+      "e-commerce": 1,
+      "fitness/wellness": 1,
+      "online-course": 1,
+      "cybersecurity/software": 1,
+      "consulting/coaching": 1,
+      "sales/upsell": 1,
+      "education": 1,
+      "productivity/coaching": 1,
+      "finance/investing": 1,
+      "medical/health": 1,
+      "health/supplements": 1,
+      "professional-services": 1,
+      "real-estate": 1,
+      "saas/billing": 1,
+      "career/mentorship": 1,
+      "event-ticketing": 1,
+      "insurance/finance": 1,
+      "career/coaching": 1,
+      "e-commerce/cross-sell": 1,
+      "sales/crowdfunding": 1
+    }
+  },
+  "spec_available": true,
+  "legacy_output_counts": {
+    "A": 20,
+    "B": 20
+  },
+  "legacy_ai_output_identity": {
+    "A_session_annotator_id": "team_member_a",
+    "B_session_annotator_id": "team_member_b",
+    "provider_model_version_prompt_hash_recorded": false,
+    "classification_basis": "origin/main README identifies the pilot results as AI annotations; the JSON files use team_member IDs, so identities are not independently established by the files"
+  },
+  "pairwise_legacy_single_label_agreement": {
+    "n": 20,
+    "agreements": 19,
+    "disagreements": [
+      "PILOT-18"
+    ],
+    "raw_agreement": 0.95,
+    "cohen_kappa": 0.9397590361445782
+  },
+  "legacy_gold_label_comparison": {
+    "status": "reference comparison only; pilot gold_label is legacy and unverified under v6",
+    "A_mismatch_ids": [
+      "PILOT-18"
+    ],
+    "B_mismatch_ids": []
+  },
+  "v6_fields_absent_from_both_legacy_outputs": {
+    "tactic_set": 20,
+    "primary_tactic": 20,
+    "pressure_level": 20,
+    "refusal flags": 20,
+    "tactic evidence spans": 20,
+    "escalation/onset": 20
+  },
+  "adjudication_artifact": {
+    "adjudicated_json_found": false,
+    "issue_level_report_found": false,
+    "README_aggregate_claim": {
+      "unresolved_issue_count": 12,
+      "AI_AI_primary_agreement_percent": 91.2,
+      "AI_AI_primary_kappa": 0.852,
+      "set_exact_match_percent": 80,
+      "refusal_agreement_percent": 92.5,
+      "escalation_agreement_percent": 100,
+      "onset_within_one_turn": "9/16"
+    },
+    "note": "README aggregate results cannot be independently recomputed from the stored single-label outputs (which cover one target message per item, not all 80 assistant turns). No adjudicated turn-level export or issue-level evidence is present."
+  },
+  "unresolved_issues": {
+    "reported_count": 12,
+    "classifiable_from_local_issue_level_evidence": 0,
+    "classification_framework": [
+      "internal contradiction in source scenario (evidence may support false urgency)",
+      "unsupported/unverifiable fictional claim (do not declare false without source evidence)",
+      "other/unclear"
+    ],
+    "status": "All twelve remain unclassified because issue-level IDs, text, adjudicator decisions, and provenance are absent. Do not infer that these twelve correspond to the example claims in the pilot."
+  },
+  "interpretation": "The stored A/B files are legacy single-label outputs. Per the canonical README/spec, AI agreement is silver reliability evidence, not human IAA or gold correctness. No v6 labels were added or repaired."
+}
