@@ -1,0 +1,31 @@
+# Voice-feature dependencies (kept apart from requirements.txt because they are heavy: torch, whisper, ...).
+# Install:  pip install -r requirements.txt -r requirements-voice.txt
+# Rule: add lines ONLY under your own header, with exact pins (==). Run `pip check` before opening a PR.
+# The Integrator installs the combined set into a fresh venv at every phase gate.
+
+# ---- core / shared (Integrator) ----
+-r requirements.txt     # backend deps (FastAPI brings pydantic v2; do not pin pydantic here)
+pytest>=8
+python-dotenv           # only if requirements.txt does not already provide it
+
+# ---- M1 speech input (Teammate 1) ----
+# faster-whisper==<pin>      (needs ffmpeg on PATH)
+# sounddevice==<pin>         (optional: mic CLI)
+
+# ---- M2 speech output + eval (Teammate 2) ----
+# kokoro==<pin>              (needs espeak-ng on PATH)
+# soundfile==<pin>
+# scikit-learn==<pin>        (eval metrics)
+
+# ---- M3 voice features + fusion (Teammate 3) ----
+# numpy==<pin>
+# scipy==<pin>
+# librosa==<pin>
+# soundfile==<pin>
+# opensmile==<pin>           (optional: jitter/shimmer)
+
+# ---- M4 orchestrator / API / UI (Teammate 4) ----
+# fastapi==<pin>
+# uvicorn[standard]==<pin>
+# python-multipart==<pin>
+# httpx==<pin>               (tests)

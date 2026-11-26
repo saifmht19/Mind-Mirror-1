@@ -1,0 +1,16 @@
+# Replace the placeholder handles with real GitHub usernames before Phase 0 ends.
+/voice/contracts.py        @saifmht19
+/voice/config.py           @saifmht19
+/voice/registry.py         @saifmht19
+/voice/stubs.py            @saifmht19
+/voice/adapters.py         @saifmht19
+/requirements-voice.txt     @saifmht19
+/voice/tests/              @saifmht19
+/voice/docs/               @saifmht19
+/voice/input/              @saifmht19
+/voice/output/             @saifmht19
+/voice/eval/               @saifmht19
+/voice/features/           @saifmht19
+/voice/fusion/             @saifmht19
+/voice/orchestrator/       @saifmht19
+/frontend/src/voice/       @saifmht19

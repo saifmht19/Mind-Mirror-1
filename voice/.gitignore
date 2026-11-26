@@ -1,0 +1,10 @@
+data/
+results/
+.env
+__pycache__/
+*.pyc
+*.pt
+*.onnx
+*.bin
+*.safetensors
+tests/fixtures/real/
