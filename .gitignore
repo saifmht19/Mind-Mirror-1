@@ -37,3 +37,4 @@ simulator/weights/
 # Archives and agent scratch space
 *.zip
 .superpowers/
+.voice_runtime/
