@@ -1,5 +1,9 @@
-"""voice.fusion -- NOT IMPLEMENTED YET. Owner: see voice/README.md and voice/docs/. Replace this file."""
+"""Voice fusion module."""
+
+from voice.adapters import build_context_detector
+from voice.fusion.detector import ContextVoiceDetector
 
 
-def build():
-    raise NotImplementedError("voice.fusion is not implemented yet (still a placeholder from Phase 0)")
+def build() -> ContextVoiceDetector:
+    """Build the context detector enhanced with relative voice cues."""
+    return ContextVoiceDetector(build_context_detector())
